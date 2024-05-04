@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Cortex Debug",
+            "cwd": "${workspaceFolder}",
+            "preLaunchCommands": ["make -j8"],
+            "executable": "./build/Telem.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "stutil",
+            "device": "STM32F415TG",
+            "interface": "swd",
+            "svdFile": "${workspaceFolder}/STM32F415.svd",
+        }
+    ]
+}
