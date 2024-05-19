@@ -9,9 +9,9 @@
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "stutil",
-            "device": "STM32F415TG",
+            "device": "STM32F415",
             "interface": "swd",
-            "svdFile": "${workspaceFolder}/STM32F415.svd",
+            "svdFile": "${workspaceFolder}/STM32F405.svd",
         }
     ]
 }
