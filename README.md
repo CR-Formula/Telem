@@ -1,7 +1,7 @@
 # Cyclone Racing Formula SAE
 ## Iowa State University
 
-This Repository stores the embedded code for our real-time telemetry system. The system is built off of an STM32H7 MCU that pulls data from the ECU and other sensors around the car and sends it in real-time to a wireless receiver, and logs it locally to an SD card. The system uses FreeRTOS to schedule telemetry-related tasks as well as ARM's CMSIS headers to interface with registers on the MCU. Most of the example code is built for a NUCLEO test board, while the actual system runs a custom PCB.
+This Repository stores the embedded code for our real-time telemetry system. The system is built off of an STM32F4 MCU that pulls data from the ECU and other sensors around the car and sends it in real-time to a wireless receiver, and logs it locally to an SD card. The system uses FreeRTOS to schedule telemetry-related tasks as well as ARM's CMSIS headers to interface with registers on the MCU. The mainboard includes a uBlox Neo-M9N for collecting GPS data, as well as an RFM95W for transmitting data over LoRa WAN. 
 
 ## Useful Links
 - [Git Cheat Sheet](https://education.github.com/git-cheat-sheet-education.pdf)
@@ -32,7 +32,7 @@ Here is a short explanation of each of these tools:
     - GCC-Arm-none-eabi: embedded Arm-specific build tools and compiler.
     - GDB-Multiarch: adds support for microcontroller debugging
     - STLink-Tools: ST-specific tools for developing and uploading embedded code
-7. Finally, we will need to install a handful of VSCode extensions, these give us some tools to upload code to the boards as well as see registers and variables while debugging. These extensions are included in [extensions.json](https://github.com/Cyclone-Racing/CR28_Telem/blob/main/.vscode/extensions.json) file in the `.vscode` directory on the `main` branch.
+7. Finally, we will need to install a handful of VSCode extensions, these give us some tools to upload code to the boards as well as see registers and variables while debugging. These extensions will be recommended to install once you clone the repository and open the root directory in VSCode.
 
 Once you've completed these steps, you can start developing firmware. The best place to start will be the Microcontroller Reference Manual. Read through the section about the peripheral you are trying to work with.
 
@@ -61,6 +61,9 @@ To debug and upload code, we use the Cortex-Debug extension. This extension uses
 3. At the bottom of the left column, there is also a xPeripherials option. These are the register values of the device you are debugging and are very useful to find issues.
 
 4. Finally, you are able to set breakpoint by clicking the red dot next to the line number you want to place the breakpoint at. This will stop the code while it is running so that you can look at the register values.
+
+# Telem Mainboard Connections
+TODO: Once finalized, this will list the peripherial connections for the Telem Mainboard for easy reference
 
 # Links
 - [Linktree](https://linktr.ee/cycloneracing)
