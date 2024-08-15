@@ -1,0 +1,24 @@
+{
+    "recommendations": [
+        "arm.keil-studio-pack",
+        "ms-vscode.cpptools",
+        "ms-vscode.cpptools-extension-pack",
+        "twxs.cmake",
+        "marus25.cortex-debug",
+        "cschlosser.doxdocgen",
+        "github.copilot",
+        "github.copilot-chat",
+        "github.vscode-pull-request-github",
+        "eamodio.gitlens",
+        "trond-snekvik.gnu-mapfiles",
+        "ms-vscode.makefile-tools",
+        "shd101wyy.markdown-preview-enhanced",
+        "ms-vsliveshare.vsliveshare",
+        "mcu-debug.memory-view",
+        "mcu-debug.peripheral-viewer",
+        "mcu-debug.rtos-views",
+        "ms-vscode.vscode-serial-monitor",
+        "redhat.vscode-yaml",
+        "dan-c-underwood.arm"
+    ]
+}
