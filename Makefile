@@ -40,6 +40,13 @@ Core/Src/main.c \
 Core/Src/freertos.c \
 Core/Src/stm32f4xx_it.c \
 Core/Src/stm32f4xx_hal_msp.c \
+Core/Src/gpio.c \
+Core/Src/uart.c \
+Core/Src/adc.c \
+Core/Src/i2c.c \
+Core/Src/spi.c \
+Core/Src/timer.c \
+Core/Src/sysclk.c \
 FATFS/Target/user_diskio.c \
 FATFS/App/fatfs.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c \
