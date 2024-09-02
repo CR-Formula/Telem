@@ -34,7 +34,7 @@ static uint8_t Get_Empty_Mailbox() {
  * @note Pins PA11(Rx) and PA12 (Tx)
  * @note Baud Rate: 500kbps
  */
-void CAN1_Init() {
+CAN_State CAN1_Init() {
 
     // Setup CAN Clocks
     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
@@ -66,15 +66,42 @@ void CAN1_Init() {
     CAN1->MCR &= ~CAN_MCR_INRQ; // Exit Initialization Mode
     while (CAN1->MSR & CAN_MSR_INAK); // Wait until Normal Mode is entered
     CAN1_State = CAN_State_Ready;
+    return CAN1_State;
 }
 
-/*
-    TODO:   Seperate out the CAN init and CAN start
-            Add CAN State Machine
-*/
+/**
+ * @brief Start communication on the CAN Bus
+ * 
+ * @return CAN_Status 
+ */
+CAN_Status CAN_Start() {
+    if (CAN1_State != CAN_State_Ready 
+        || CAN1_State != CAN_State_Initialization) {
+        return CAN_Error;
+    }
+    CAN1->MCR &= ~CAN_MCR_INRQ; // Exit Initialization Mode
+    while (!(CAN1->MSR & CAN_MSR_INAK)); // Wait until Normal Mode is entered
+
+    CAN1_State = CAN_State_Listening;
+}
 
 /**
- * @brief Transmit a CAN Frame
+ * @brief Stop communication on the CAN Bus
+ * 
+ * @return CAN_Status 
+ */
+CAN_Status CAN_Stop() {
+    if (CAN1_State != CAN_State_Listening) {
+        return CAN_Error;
+    }
+    CAN1->MCR |= CAN_MCR_INRQ; // Enter Initialization Mode
+    while (!(CAN1->MSR & CAN_MSR_INAK)); // Wait until Initialization Mode is entered
+    CAN1_State = CAN_State_Initialization;
+    return CAN_OK;
+}
+
+/**
+ * @brief Add a CAN frame to the transmit mailbox
  * 
  * @param CAN [CAN_TypeDef*] CAN Peripheral to receive from
  * @param frame [CAN_Frame*] Frame to transmit

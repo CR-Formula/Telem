@@ -47,7 +47,21 @@ CAN_State CAN1_State = CAN_State_Reset;
 void CAN1_Init();
 
 /**
- * @brief Transmit a CAN Frame
+ * @brief Start communication on the CAN Bus
+ * 
+ * @return CAN_Status 
+ */
+CAN_Status CAN_Start();
+
+/**
+ * @brief Stop Communication on the CAN Bus
+ * 
+ * @return CAN_Status 
+ */
+CAN_Status CAN_Stop();
+
+/**
+ * @brief Add a CAN frame to the transmit mailbox
  * 
  * @param CAN [CAN_TypeDef*] CAN Peripheral to receive from
  * @param frame [CAN_Frame*] Frame to transmit
