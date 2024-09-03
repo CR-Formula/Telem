@@ -14,7 +14,7 @@
  * @note HSE Clock is 8MHz
  * @note SYSCLK = 168MHz, APB1 = 42MHz, APB2 = 84MHz
  */
-void Sysclock_168() {
+void Sysclk_168() {
     RCC->CR |= RCC_CR_HSEON; // Enable HSE Clock
     while (!(RCC->CR & RCC_CR_HSERDY)); // Wait until HSE is ready
 
@@ -27,7 +27,7 @@ void Sysclock_168() {
 
     RCC->PLLCFGR = 7 << RCC_PLLCFGR_PLLQ_Pos; // Set PLLQ to 7
     RCC->PLLCFGR |= 0 << RCC_PLLCFGR_PLLP_Pos; // Set PLLP to 2
-    RCC->PLLCFGR |= 336 << RCC_PLLCFGR_PLLN_Pos; // Set PLLN to 336
+    RCC->PLLCFGR |= 168 << RCC_PLLCFGR_PLLN_Pos; // Set PLLN to 336
     RCC->PLLCFGR |= 8 << RCC_PLLCFGR_PLLM_Pos; // Set PLLM to 8
     RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_HSE; // Set PLL Source to HSE
 

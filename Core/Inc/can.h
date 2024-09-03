@@ -17,12 +17,13 @@ typedef enum {
     CAN_OK,
     CAN_TX_Req,
     CAN_Error,
-    CAN_Mailbox_Error
+    CAN_Mailbox_Error,
+    CAN_Fifo_Error
 } CAN_Status;
 
 typedef enum {
-    CAN_State_Error,
     CAN_State_Reset,
+    CAN_State_Error,
     CAN_State_Ready,
     CAN_State_Listening,
     CAN_State_Transmitting,
@@ -36,15 +37,13 @@ typedef struct {
     uint8_t data[8]; // Data Bytes
 } CAN_Frame;
 
-CAN_State CAN1_State = CAN_State_Reset;
-
 /**
  * @brief Initializes CAN1
  * 
  * @note Pins PA11(Rx) and PA12 (Tx)
  * @note Baud Rate: 500kbps
  */
-void CAN1_Init();
+CAN_Status CAN1_Init();
 
 /**
  * @brief Start communication on the CAN Bus

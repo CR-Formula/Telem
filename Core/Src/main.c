@@ -7,6 +7,7 @@
 #include "can.h"
 
 void Status_LED(void *argument);
+void CAN_Task(void *argument);
 
 osThreadId_t StatusLED;
 const osThreadAttr_t StatusLED_attr = {
@@ -15,17 +16,26 @@ const osThreadAttr_t StatusLED_attr = {
   .stack_size = 128
 };
 
+osThreadId_t CANTask;
+const osThreadAttr_t CANTask_attr = {
+  .name = "CAN_Task",
+  .priority = osPriorityNormal,
+  .stack_size = 128
+};
+
 int main() {
   osKernelInitialize(); // Initialize FreeRTOS
 
+  Sysclk_168();
   LED_Init();
+  CAN1_Init();
+  CAN_Start();
 
   StatusLED = osThreadNew(Status_LED, NULL, &StatusLED_attr);
+  CANTask = osThreadNew(CAN_Task, NULL, &CANTask_attr);
 
   osKernelStart(); // Start FreeRTOS
-  while(1) {
-
-  }
+  while(1);
 }
 
 /**
@@ -35,7 +45,30 @@ int main() {
  */
 void Status_LED(void *argument) {
   while(1) {
-    osDelay(1000);
+    osDelay(100);
     Toggle_Pin(GPIOC, 13);
+  }
+}
+
+/**
+ * @brief Thread for handling CAN communication
+ * 
+ * @param argument 
+ */
+void CAN_Task(void *argument) {
+  CAN_Frame frame;
+  CAN_Frame received;
+  frame.id = 0x123;
+  frame.dlc = 8;
+  frame.rtr = CAN_RTR_Data;
+  for(int i = 0; i < 8; i++) {
+    frame.data[i] = i;
+  }
+
+  while(1) {
+    CAN_Transmit(CAN1, &frame);
+    osDelay(1000);
+    CAN_Receive(CAN1, &received);
+    osDelay(1000);
   }
 }

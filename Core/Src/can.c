@@ -11,6 +11,8 @@
 #include "stm32f415xx.h"
 #include "can.h"
 
+CAN_State CAN1_State;
+
 /**
  * @brief Find an empty CAN Transmit mailbox
  * 
@@ -34,7 +36,7 @@ static uint8_t Get_Empty_Mailbox() {
  * @note Pins PA11(Rx) and PA12 (Tx)
  * @note Baud Rate: 500kbps
  */
-CAN_State CAN1_Init() {
+CAN_Status CAN1_Init() {
 
     // Setup CAN Clocks
     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
@@ -49,10 +51,9 @@ CAN_State CAN1_Init() {
     // Initialize the CAN Peripheral
     CAN1->MCR |= CAN_MCR_INRQ; // Request Initialization Mode
     while (!(CAN1->MSR & CAN_MSR_INAK)); // Wait until Initialization Mode is entered
-    CAN1_State = CAN_State_Initialization;
-
     CAN1->MCR &= ~CAN_MCR_SLEEP; // Exit Sleep Mode
-    while (!(CAN1->MSR & CAN_MSR_SLAK)); // Wait until Sleep Mode is exited
+    while (CAN1->MSR & CAN_MSR_SLAK); // Wait until Sleep Mode is exited
+    CAN1_State = CAN_State_Initialization;
 
     // Configure CAN1 Settings
     CAN1->MCR &= ~CAN_MCR_TXFP & ~CAN_MCR_NART & ~CAN_MCR_RFLM 
@@ -61,12 +62,12 @@ CAN_State CAN1_Init() {
     // http://www.bittiming.can-wiki.info/
     // Sample Point at 85.7% Reg Value = 0x001a0005
     CAN1->BTR = 0x001a0005; // Set Baud Rate to 500kbps
-    // TODO: Loopback Mode For Testing
-    CAN1->BTR |= CAN_BTR_LBKM; // Loopback Mode
+
+    CAN1->BTR &= ~CAN_BTR_SILM; // Normal Mode
     CAN1->MCR &= ~CAN_MCR_INRQ; // Exit Initialization Mode
     while (CAN1->MSR & CAN_MSR_INAK); // Wait until Normal Mode is entered
     CAN1_State = CAN_State_Ready;
-    return CAN1_State;
+    return CAN_OK;
 }
 
 /**
@@ -76,13 +77,14 @@ CAN_State CAN1_Init() {
  */
 CAN_Status CAN_Start() {
     if (CAN1_State != CAN_State_Ready 
-        || CAN1_State != CAN_State_Initialization) {
+        && CAN1_State != CAN_State_Initialization) {
         return CAN_Error;
     }
     CAN1->MCR &= ~CAN_MCR_INRQ; // Exit Initialization Mode
-    while (!(CAN1->MSR & CAN_MSR_INAK)); // Wait until Normal Mode is entered
+    while (CAN1->MSR & CAN_MSR_INAK); // Wait until Normal Mode is entered
 
     CAN1_State = CAN_State_Listening;
+    return CAN_OK;
 }
 
 /**
@@ -108,9 +110,9 @@ CAN_Status CAN_Stop() {
  * @return [CAN_Status] Status of Transmission
  */
 CAN_Status CAN_Transmit(CAN_TypeDef* CAN, CAN_Frame* frame) {
-    if (CAN == NULL || frame == NULL 
-        || CAN1_State != CAN_State_Listening
-        || CAN1_State != CAN_State_Ready) {
+    if (CAN == NULL || frame == NULL ||
+        (CAN1_State != CAN_State_Listening
+        && CAN1_State != CAN_State_Ready)) {
         return CAN_Error;
     }
 
@@ -146,9 +148,9 @@ CAN_Status CAN_Transmit(CAN_TypeDef* CAN, CAN_Frame* frame) {
  * @return [CAN_Status] Status of Reception
  */
 CAN_Status CAN_Receive(CAN_TypeDef* CAN, CAN_Frame* frame) {
-    if (CAN == NULL || frame == NULL
-        || CAN1_State != CAN_State_Listening
-        || CAN1_State != CAN_State_Ready) {
+    if (CAN == NULL || frame == NULL ||
+        (CAN1_State != CAN_State_Listening
+        && CAN1_State != CAN_State_Ready)) {
         return CAN_Error;
     }
 
