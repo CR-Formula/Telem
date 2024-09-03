@@ -8,7 +8,7 @@
 
 #include <stddef.h>
 
-#include "stm32f407xx.h"
+#include "stm32f415xx.h"
 #include "can.h"
 
 /**
@@ -108,7 +108,9 @@ CAN_Status CAN_Stop() {
  * @return [CAN_Status] Status of Transmission
  */
 CAN_Status CAN_Transmit(CAN_TypeDef* CAN, CAN_Frame* frame) {
-    if (CAN == NULL || frame == NULL) {
+    if (CAN == NULL || frame == NULL 
+        || CAN1_State != CAN_State_Listening
+        || CAN1_State != CAN_State_Ready) {
         return CAN_Error;
     }
 
@@ -144,11 +146,13 @@ CAN_Status CAN_Transmit(CAN_TypeDef* CAN, CAN_Frame* frame) {
  * @return [CAN_Status] Status of Reception
  */
 CAN_Status CAN_Receive(CAN_TypeDef* CAN, CAN_Frame* frame) {
-    if (CAN == NULL || frame == NULL) {
+    if (CAN == NULL || frame == NULL
+        || CAN1_State != CAN_State_Listening
+        || CAN1_State != CAN_State_Ready) {
         return CAN_Error;
     }
 
-    if ((CAN->RF0R & CAN_RF0R_FMP0) == 0x1) {
+    if ((CAN->RF0R & CAN_RF0R_FMP0)) {
         frame->id = (CAN->sFIFOMailBox[0].RIR & CAN_RI0R_STID_Msk) >> CAN_RI0R_STID_Pos;
         
         for (int i = 0; i < 4; i++) {
@@ -159,6 +163,21 @@ CAN_Status CAN_Receive(CAN_TypeDef* CAN, CAN_Frame* frame) {
         }
         CAN->RF0R |= CAN_RF0R_RFOM0; // Release FIFO 0
         return CAN_OK;
+    }
+    else if ((CAN->RF1R & CAN_RF1R_FMP1)) {
+        frame->id = (CAN->sFIFOMailBox[1].RIR & CAN_RI1R_STID_Msk) >> CAN_RI1R_STID_Pos;
+
+        for (int i = 0; i < 4; i++) {
+            frame->data[i] = (CAN->sFIFOMailBox[1].RDLR >> (i * 8)) & 0xFF;
+        }
+        for (int i = 0; i < 4; i++) {
+            frame->data[i + 4] = (CAN->sFIFOMailBox[1].RDHR >> (i * 8)) & 0xFF;
+        }
+        CAN->RF1R |= CAN_RF1R_RFOM1; // Release FIFO 1
+        return CAN_OK;
+    }
+    else {
+        return CAN_Fifo_Error;
     }
 }
     
