@@ -19,23 +19,9 @@ CAN_State CAN1_State;
  * @return [uint8_t] Index of Empty Mailbox 
  */
 static uint8_t Get_Empty_Mailbox() {
-    if (CAN1->TSR & CAN_TSR_TME0) {
-        return 0u;
-    } else if (CAN1->TSR & CAN_TSR_TME1) {
-        return 1u;
-    } else if (CAN1->TSR & CAN_TSR_TME2) {
-        return 2u;
-    } else {
-        return 0xFFu;
-    }
+    return (CAN1->TSR & CAN_TSR_CODE_Msk) >> CAN_TSR_CODE_Pos;
 }
 
-/**
- * @brief Initializes CAN1
- * 
- * @note Pins PA11(Rx) and PA12 (Tx)
- * @note Baud Rate: 500kbps
- */
 CAN_Status CAN1_Init() {
 
     // Setup CAN Clocks
@@ -49,51 +35,42 @@ CAN_Status CAN1_Init() {
     GPIOA->OSPEEDR |= (0x3 << GPIO_OSPEEDR_OSPEED11_Pos) | (0x3 << GPIO_OSPEEDR_OSPEED12_Pos);
 
     // Initialize the CAN Peripheral
-    CAN1->MCR |= CAN_MCR_INRQ; // Request Initialization Mode
-    while (!(CAN1->MSR & CAN_MSR_INAK)); // Wait until Initialization Mode is entered
+    CAN1->MCR |= CAN_MCR_RESET; // Reset CAN1
     CAN1->MCR &= ~CAN_MCR_SLEEP; // Exit Sleep Mode
     while (CAN1->MSR & CAN_MSR_SLAK); // Wait until Sleep Mode is exited
+    CAN1->MCR |= CAN_MCR_INRQ; // Request Initialization Mode
+    while (!(CAN1->MSR & CAN_MSR_INAK)); // Wait until Initialization Mode is entered
     CAN1_State = CAN_State_Initialization;
 
     // Configure CAN1 Settings
     CAN1->MCR &= ~CAN_MCR_TXFP & ~CAN_MCR_NART & ~CAN_MCR_RFLM 
                 & ~CAN_MCR_TTCM & ~CAN_MCR_ABOM & ~CAN_MCR_TXFP;
+    CAN1->MCR |= CAN_MCR_AWUM;
     
+    // Configure CAN1 Baud Rate
     // http://www.bittiming.can-wiki.info/
-    // Sample Point at 85.7% Reg Value = 0x001a0005
-    CAN1->BTR = 0x001a0005; // Set Baud Rate to 500kbps
+    CAN1->BTR &= ~CAN_BTR_SILM & ~CAN_BTR_LBKM; // Disable Silent and Loopback Mode
+    CAN1->BTR |= CAN_BTR_LBKM;
+    CAN1->BTR |= (0xA << CAN_BTR_TS1_Pos) | (0x1 << CAN_BTR_TS2_Pos) 
+                | (0x0 << CAN_BTR_SJW_Pos) | (0x5 << CAN_BTR_BRP_Pos);
 
-    CAN1->BTR &= ~CAN_BTR_SILM; // Normal Mode
-    CAN1->MCR &= ~CAN_MCR_INRQ; // Exit Initialization Mode
-    while (CAN1->MSR & CAN_MSR_INAK); // Wait until Normal Mode is entered
-    CAN1_State = CAN_State_Ready;
+    CAN1_State = CAN_State_Normal;
     return CAN_OK;
 }
 
-/**
- * @brief Start communication on the CAN Bus
- * 
- * @return CAN_Status 
- */
 CAN_Status CAN_Start() {
-    if (CAN1_State != CAN_State_Ready 
-        && CAN1_State != CAN_State_Initialization) {
+    if (CAN1_State != CAN_State_Normal) {
         return CAN_Error;
     }
     CAN1->MCR &= ~CAN_MCR_INRQ; // Exit Initialization Mode
     while (CAN1->MSR & CAN_MSR_INAK); // Wait until Normal Mode is entered
+    CAN1_State = CAN_State_Normal;
 
-    CAN1_State = CAN_State_Listening;
     return CAN_OK;
 }
 
-/**
- * @brief Stop communication on the CAN Bus
- * 
- * @return CAN_Status 
- */
 CAN_Status CAN_Stop() {
-    if (CAN1_State != CAN_State_Listening) {
+    if (CAN1_State != CAN_State_Normal) {
         return CAN_Error;
     }
     CAN1->MCR |= CAN_MCR_INRQ; // Enter Initialization Mode
@@ -102,24 +79,14 @@ CAN_Status CAN_Stop() {
     return CAN_OK;
 }
 
-/**
- * @brief Add a CAN frame to the transmit mailbox
- * 
- * @param CAN [CAN_TypeDef*] CAN Peripheral to receive from
- * @param frame [CAN_Frame*] Frame to transmit
- * @return [CAN_Status] Status of Transmission
- */
 CAN_Status CAN_Transmit(CAN_TypeDef* CAN, CAN_Frame* frame) {
+    // Basic Type Checking
     if (CAN == NULL || frame == NULL ||
-        (CAN1_State != CAN_State_Listening
-        && CAN1_State != CAN_State_Ready)) {
+        CAN1_State != CAN_State_Normal) {
         return CAN_Error;
     }
 
-    uint8_t mailbox = Get_Empty_Mailbox();
-    if (mailbox == 0xFFu) {
-        return CAN_Mailbox_Error;
-    }
+    volatile uint8_t mailbox = Get_Empty_Mailbox();
 
     // Set ID, DLC, Frame Type, and Data
     CAN->sTxMailBox[mailbox].TIR = 0x0UL; // Clear the mailbox register
@@ -139,18 +106,9 @@ CAN_Status CAN_Transmit(CAN_TypeDef* CAN, CAN_Frame* frame) {
     return CAN_TX_Req;
 }
 
-/**
- * @brief Receive a CAN Frame
- * @note Only populates id and data fields
- * 
- * @param CAN [CAN_TypeDef*] CAN Peripheral to receive from
- * @param frame [CAN_Frame*] Frame struct to receive
- * @return [CAN_Status] Status of Reception
- */
 CAN_Status CAN_Receive(CAN_TypeDef* CAN, CAN_Frame* frame) {
     if (CAN == NULL || frame == NULL ||
-        (CAN1_State != CAN_State_Listening
-        && CAN1_State != CAN_State_Ready)) {
+        CAN1_State != CAN_State_Normal) {
         return CAN_Error;
     }
 

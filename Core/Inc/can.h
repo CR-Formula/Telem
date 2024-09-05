@@ -22,12 +22,9 @@ typedef enum {
 } CAN_Status;
 
 typedef enum {
-    CAN_State_Reset,
-    CAN_State_Error,
-    CAN_State_Ready,
-    CAN_State_Listening,
-    CAN_State_Transmitting,
-    CAN_State_Initialization
+    CAN_State_Sleep,
+    CAN_State_Initialization,
+    CAN_State_Normal,
 } CAN_State;
 
 typedef struct {

@@ -58,6 +58,8 @@ void Status_LED(void *argument) {
 void CAN_Task(void *argument) {
   CAN_Frame frame;
   CAN_Frame received;
+  volatile CAN_Status Send;
+  volatile CAN_Status Receive;
   frame.id = 0x123;
   frame.dlc = 8;
   frame.rtr = CAN_RTR_Data;
@@ -66,9 +68,9 @@ void CAN_Task(void *argument) {
   }
 
   while(1) {
-    CAN_Transmit(CAN1, &frame);
+    Send = CAN_Transmit(CAN1, &frame);
     osDelay(1000);
-    CAN_Receive(CAN1, &received);
+    Receive = CAN_Receive(CAN1, &received);
     osDelay(1000);
   }
 }
