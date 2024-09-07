@@ -28,9 +28,10 @@ CAN_Status CAN1_Init() {
     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
     RCC->APB1ENR |= RCC_APB1ENR_CAN1EN;
 
-    // Setup CAN GPIO Pins
+    // Setup CAN GPIO Pins for AF and Open Drain
     GPIOA->MODER &= ~GPIO_MODER_MODE11 & ~GPIO_MODER_MODE12;
     GPIOA->MODER |= (0x2 << GPIO_MODER_MODE11_Pos) | (0x2 << GPIO_MODER_MODE12_Pos);
+    GPIOA->OTYPER |= GPIO_OTYPER_OT11 | GPIO_OTYPER_OT12;
     GPIOA->AFR[1] |= (0x9 << GPIO_AFRH_AFSEL11_Pos) | (0x9 << GPIO_AFRH_AFSEL12_Pos);
     GPIOA->OSPEEDR |= (0x3 << GPIO_OSPEEDR_OSPEED11_Pos) | (0x3 << GPIO_OSPEEDR_OSPEED12_Pos);
 
@@ -50,18 +51,24 @@ CAN_Status CAN1_Init() {
     // Configure CAN1 Baud Rate
     // http://www.bittiming.can-wiki.info/
     CAN1->BTR &= ~CAN_BTR_SILM & ~CAN_BTR_LBKM; // Disable Silent and Loopback Mode
-    // CAN1->BTR |= CAN_BTR_LBKM;
+    CAN1->BTR |= CAN_BTR_LBKM; // Loopback mode for debug
     CAN1->BTR &= ~CAN_BTR_TS1_Msk & ~CAN_BTR_TS2_Msk 
                 & ~CAN_BTR_SJW_Msk & ~CAN_BTR_BRP_Msk;
     CAN1->BTR |= (0xA << CAN_BTR_TS1_Pos) | (0x1 << CAN_BTR_TS2_Pos) 
                 | (0x0 << CAN_BTR_SJW_Pos) | (0x5 << CAN_BTR_BRP_Pos);
 
-    CAN1_State = CAN_State_Normal;
     return CAN_OK;
 }
 
+CAN_Status CAN_Filters_Init() {
+    if (CAN1_State != CAN_State_Initialization) {
+        return CAN_Error;
+    }
+    
+}
+
 CAN_Status CAN_Start() {
-    if (CAN1_State != CAN_State_Normal) {
+    if (CAN1_State != CAN_State_Initialization) {
         return CAN_Error;
     }
     CAN1->MCR &= ~CAN_MCR_INRQ; // Exit Initialization Mode
@@ -90,11 +97,13 @@ CAN_Status CAN_Transmit(CAN_TypeDef* CAN, CAN_Frame* frame) {
 
     volatile uint8_t mailbox = Get_Empty_Mailbox();
 
+    // Clear the mailbox register
+    CAN->sTxMailBox[mailbox].TIR = 0x0UL; 
+
     // Set ID, DLC, Frame Type, and Data
-    CAN->sTxMailBox[mailbox].TIR = 0x0UL; // Clear the mailbox register
     CAN->sTxMailBox[mailbox].TIR |= (frame->id << CAN_TI0R_STID_Pos)
                                     | (frame->rtr << CAN_TI0R_RTR_Pos);
-    CAN->sTxMailBox[mailbox].TDTR = (frame->dlc << CAN_TDT0R_DLC_Pos);
+    CAN->sTxMailBox[mailbox].TDTR |= (frame->dlc << CAN_TDT0R_DLC_Pos);
     CAN->sTxMailBox[mailbox].TDLR = (frame->data[0] << CAN_TDL0R_DATA0_Pos) 
                                     | (frame->data[1] << CAN_TDL0R_DATA1_Pos)
                                     | (frame->data[2] << CAN_TDL0R_DATA2_Pos) 

@@ -29,7 +29,6 @@ int main() {
   Sysclk_168();
   LED_Init();
   CAN1_Init();
-  CAN_Start();
 
   StatusLED = osThreadNew(Status_LED, NULL, &StatusLED_attr);
   CANTask = osThreadNew(CAN_Task, NULL, &CANTask_attr);
@@ -66,6 +65,8 @@ void CAN_Task(void *argument) {
   for(int i = 0; i < 8; i++) {
     frame.data[i] = i;
   }
+
+  CAN_Start();
 
   while(1) {
     Send = CAN_Transmit(CAN1, &frame);

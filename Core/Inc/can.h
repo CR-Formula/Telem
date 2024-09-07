@@ -39,8 +39,16 @@ typedef struct {
  * 
  * @note Pins PA11(Rx) and PA12 (Tx)
  * @note Baud Rate: 500kbps
+ * @return CAN_Status
  */
 CAN_Status CAN1_Init();
+
+/**
+ * @brief Initalize CAN Filters
+ * 
+ * @return CAN_Status 
+ */
+CAN_Status CAN_Filters_Init();
 
 /**
  * @brief Start communication on the CAN Bus
