@@ -29,7 +29,7 @@ void Sysclk_168() {
     RCC->PLLCFGR |= 0 << RCC_PLLCFGR_PLLP_Pos; // Set PLLP to 2
     RCC->PLLCFGR |= 168 << RCC_PLLCFGR_PLLN_Pos; // Set PLLN to 336
     RCC->PLLCFGR |= 8 << RCC_PLLCFGR_PLLM_Pos; // Set PLLM to 8
-    RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_HSE; // Set PLL Source to HSE
+    RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_HSI; // Set PLL Source to HSE
 
     FLASH->ACR |= FLASH_ACR_PRFTEN; // Enable Prefetch Buffer
     FLASH->ACR |= FLASH_ACR_ICEN; // Enable Instruction Cache

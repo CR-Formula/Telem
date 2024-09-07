@@ -43,14 +43,16 @@ CAN_Status CAN1_Init() {
     CAN1_State = CAN_State_Initialization;
 
     // Configure CAN1 Settings
-    CAN1->MCR &= ~CAN_MCR_TXFP & ~CAN_MCR_NART & ~CAN_MCR_RFLM 
-                & ~CAN_MCR_TTCM & ~CAN_MCR_ABOM & ~CAN_MCR_TXFP;
-    CAN1->MCR |= CAN_MCR_AWUM;
+    CAN1->MCR &= ~CAN_MCR_TXFP & ~CAN_MCR_RFLM & ~CAN_MCR_TTCM 
+                & ~CAN_MCR_ABOM & ~CAN_MCR_TXFP;
+    CAN1->MCR |= CAN_MCR_AWUM | CAN_MCR_NART | CAN_MCR_DBF;
     
     // Configure CAN1 Baud Rate
     // http://www.bittiming.can-wiki.info/
     CAN1->BTR &= ~CAN_BTR_SILM & ~CAN_BTR_LBKM; // Disable Silent and Loopback Mode
-    CAN1->BTR |= CAN_BTR_LBKM;
+    // CAN1->BTR |= CAN_BTR_LBKM;
+    CAN1->BTR &= ~CAN_BTR_TS1_Msk & ~CAN_BTR_TS2_Msk 
+                & ~CAN_BTR_SJW_Msk & ~CAN_BTR_BRP_Msk;
     CAN1->BTR |= (0xA << CAN_BTR_TS1_Pos) | (0x1 << CAN_BTR_TS2_Pos) 
                 | (0x0 << CAN_BTR_SJW_Pos) | (0x5 << CAN_BTR_BRP_Pos);
 
