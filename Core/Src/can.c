@@ -28,10 +28,9 @@ CAN_Status CAN1_Init() {
     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
     RCC->APB1ENR |= RCC_APB1ENR_CAN1EN;
 
-    // Setup CAN GPIO Pins for AF and Open Drain
+    // Setup CAN GPIO Pins for AF, Open Drain, and Very High Speed
     GPIOA->MODER &= ~GPIO_MODER_MODE11 & ~GPIO_MODER_MODE12;
     GPIOA->MODER |= (0x2 << GPIO_MODER_MODE11_Pos) | (0x2 << GPIO_MODER_MODE12_Pos);
-    GPIOA->OTYPER |= GPIO_OTYPER_OT11 | GPIO_OTYPER_OT12;
     GPIOA->AFR[1] |= (0x9 << GPIO_AFRH_AFSEL11_Pos) | (0x9 << GPIO_AFRH_AFSEL12_Pos);
     GPIOA->OSPEEDR |= (0x3 << GPIO_OSPEEDR_OSPEED11_Pos) | (0x3 << GPIO_OSPEEDR_OSPEED12_Pos);
 
@@ -64,7 +63,13 @@ CAN_Status CAN_Filters_Init() {
     if (CAN1_State != CAN_State_Initialization) {
         return CAN_Error;
     }
-    
+
+    CAN1->FMR |= CAN_FMR_FINIT; // Enter Filter Initialization Mode
+
+    CAN1->FM1R &= ~CAN_FM1R_FBM_Msk; // Set Filter 0 to Mask Mode
+    CAN1->FS1R &= ~CAN_FS1R_FSC_Msk; // Set Filter 0 to 32-bit Scale
+    CAN1->FFA1R &= ~CAN_FFA1R_FFA_Msk; // Set Filter 0 to FIFO 0
+    CAN1->FA1R |= CAN_FA1R_FACT_Msk; // Enable Filter 0
 }
 
 CAN_Status CAN_Start() {

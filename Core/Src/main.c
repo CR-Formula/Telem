@@ -66,6 +66,7 @@ void CAN_Task(void *argument) {
     frame.data[i] = i;
   }
 
+  CAN_Filters_Init();
   CAN_Start();
 
   while(1) {
