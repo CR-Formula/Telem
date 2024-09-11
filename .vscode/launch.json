@@ -9,6 +9,10 @@
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "stutil",
+            "liveWatch": {
+                "enabled": true,
+                "samplesPerSecond": 4
+            },
             "device": "STM32F415",
             "interface": "swd",
             "svdFile": "${workspaceFolder}/STM32F405.svd",
