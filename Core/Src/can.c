@@ -50,7 +50,6 @@ CAN_Status CAN1_Init() {
     // Configure CAN1 Baud Rate
     // http://www.bittiming.can-wiki.info/
     CAN1->BTR &= ~CAN_BTR_SILM & ~CAN_BTR_LBKM; // Disable Silent and Loopback Mode
-    CAN1->BTR |= CAN_BTR_LBKM; // Loopback mode for debug
     CAN1->BTR &= ~CAN_BTR_TS1_Msk & ~CAN_BTR_TS2_Msk 
                 & ~CAN_BTR_SJW_Msk & ~CAN_BTR_BRP_Msk;
     CAN1->BTR |= (0xA << CAN_BTR_TS1_Pos) | (0x1 << CAN_BTR_TS2_Pos) 

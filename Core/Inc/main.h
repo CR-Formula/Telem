@@ -1,4 +1,3 @@
-/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
   * @file           : main.h
@@ -16,9 +15,8 @@
   *
   ******************************************************************************
   */
-/* USER CODE END Header */
 
-/* Define to prevent recursive inclusion -------------------------------------*/
+/* Define to prevent recursive inclusion ------------------------------------*/
 #ifndef __MAIN_H
 #define __MAIN_H
 
@@ -26,44 +24,59 @@
 extern "C" {
 #endif
 
-/* Includes ------------------------------------------------------------------*/
+/* Includes -----------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
+#include "stm32f415xx.h"
+#include "cmsis_os2.h"
 
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
+#include <stdint.h>
 
-/* USER CODE END Includes */
+#include "gpio.h"
+#include "can.h"
+/* Data Structures  ---------------------------------------------------------*/
+typedef struct {
+  uint16_t RPM;           // RPM
+  uint16_t TPS;           // TPS
+  uint16_t FOT;           // Fuel Open Time
+  uint16_t IA;            // Ignition Angle
+  uint16_t Lam;           // Lambda
+  uint16_t AirT;          // Air Temp
+  uint16_t CoolT;         // Coolant Temp
+  uint16_t Speed;         // Vehicle Speed
+  uint16_t OilP;          // Oil Pressure
+  uint16_t FRTemp;        // Front Right Brake Temp
+  uint16_t RRTemp;        // Rear Right Brake Temp
+  uint16_t FRPot;         // Front Right Suspension Damper
+  uint16_t RRPot;         // Rear Right Suspension Damper
+  uint16_t latGPS;        // Latitude GPS
+  uint16_t longGPS;       // Longitude GPS
+  uint16_t AccX;          // Accelerometer X Axis
+  uint16_t AccZ;          // Accelerometer Z Axis
+  uint16_t AccY;          // Accelerometer Y Axis
+} Telemetry;
 
-/* Exported types ------------------------------------------------------------*/
-/* USER CODE BEGIN ET */
-
-/* USER CODE END ET */
-
-/* Exported constants --------------------------------------------------------*/
-/* USER CODE BEGIN EC */
-
-/* USER CODE END EC */
-
-/* Exported macro ------------------------------------------------------------*/
-/* USER CODE BEGIN EM */
-
-/* USER CODE END EM */
-
-/* Exported functions prototypes ---------------------------------------------*/
+/* Functions prototypes -----------------------------------------------------*/
 void Error_Handler(void);
 
-/* USER CODE BEGIN EFP */
+/**
+ * @brief Thread for blinking the status led
+ * 
+ * @param argument 
+ */
+void Status_LED(void *argument);
 
-/* USER CODE END EFP */
+/**
+ * @brief Thread for handling CAN communication
+ * @note TODO: Implement CAN Task
+ * 
+ * @param argument 
+ */
+void CAN_Task(void *argument);
 
-/* Private defines -----------------------------------------------------------*/
-
-/* USER CODE BEGIN Private defines */
-
-/* USER CODE END Private defines */
-
-#ifdef __cplusplus
-}
-#endif
+/**
+ * @brief Main Function to start FreeRTOS and initialize peripherals
+ * 
+ */
+void main();
 
 #endif /* __MAIN_H */

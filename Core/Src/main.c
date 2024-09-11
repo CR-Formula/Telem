@@ -1,14 +1,17 @@
-#include "stm32f415xx.h"
-#include "cmsis_os2.h"
+/************************************************
+* @file    main.c 
+* @author  APBashara
+* @date    9/2024
+* 
+* @brief   Main Code to run Tasks and Setup Peripherals
+***********************************************/
 
-#include <stdint.h>
+#include "main.h"
 
-#include "gpio.h"
-#include "can.h"
+/* Global Variables ---------------------------------------------------------*/
+Telemetry telemetry;
 
-void Status_LED(void *argument);
-void CAN_Task(void *argument);
-
+/* Thread Attributes --------------------------------------------------------*/
 osThreadId_t StatusLED;
 const osThreadAttr_t StatusLED_attr = {
   .name = "Status_Task",
@@ -23,13 +26,17 @@ const osThreadAttr_t CANTask_attr = {
   .stack_size = 128
 };
 
-int main() {
+void main() {
   osKernelInitialize(); // Initialize FreeRTOS
 
+  // Initialize Peripherals
   Sysclk_168();
   LED_Init();
   CAN1_Init();
+  CAN_Filters_Init();
+  CAN_Start();
 
+  // Create FreeRTOS Threads
   StatusLED = osThreadNew(Status_LED, NULL, &StatusLED_attr);
   CANTask = osThreadNew(CAN_Task, NULL, &CANTask_attr);
 
@@ -37,11 +44,6 @@ int main() {
   while(1);
 }
 
-/**
- * @brief Thread for blinking the status led
- * 
- * @param argument 
- */
 void Status_LED(void *argument) {
   while(1) {
     osDelay(100);
@@ -49,30 +51,16 @@ void Status_LED(void *argument) {
   }
 }
 
-/**
- * @brief Thread for handling CAN communication
- * 
- * @param argument 
- */
 void CAN_Task(void *argument) {
-  CAN_Frame frame;
-  CAN_Frame received;
-  volatile CAN_Status Send;
+  volatile CAN_Frame rFrame;
   volatile CAN_Status Receive;
-  frame.id = 0x123;
-  frame.dlc = 8;
-  frame.rtr = CAN_RTR_Data;
-  for(int i = 0; i < 8; i++) {
-    frame.data[i] = i;
-  }
-
-  CAN_Filters_Init();
-  CAN_Start();
 
   while(1) {
-    Send = CAN_Transmit(CAN1, &frame);
-    osDelay(1000);
-    Receive = CAN_Receive(CAN1, &received);
+    Receive = CAN_Receive(CAN1, &rFrame);
+    if (Receive == CAN_OK) {
+      telemetry.RPM = rFrame.data[0] << 8 | rFrame.data[1];
+      // TODO: Implement CAN Task
+    }
     osDelay(1000);
   }
 }
