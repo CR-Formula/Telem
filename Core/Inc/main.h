@@ -74,6 +74,34 @@ void Status_LED(void *argument);
 void CAN_Task(void *argument);
 
 /**
+ * @brief Update the values on the driver display
+ * 
+ * @param argument 
+ */
+void Display_Update(void *argument);
+
+/**
+ * @brief Update GPS Values
+ * 
+ * @param argument 
+ */
+void GPS_Update(void *argument);
+
+/**
+ * @brief Send the Telemetry Data over Lora
+ * 
+ * @param argument 
+ */
+void Lora_Send(void *argument);
+
+/**
+ * @brief Update ADC values
+ * 
+ * @param argument 
+ */
+void ADC_Update(void *argument);
+
+/**
  * @brief Main Function to start FreeRTOS and initialize peripherals
  * 
  */
