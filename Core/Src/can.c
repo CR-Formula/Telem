@@ -76,6 +76,7 @@ CAN_Status CAN_Filters_Init() {
 
     CAN1->FA1R |= CAN_FA1R_FACT_Msk; // Enable Filter 0
     CAN1->FMR &= ~CAN_FMR_FINIT; // Exit Filter Initialization Mode
+    return CAN_OK;
 }
 
 CAN_Status CAN_Start() {
