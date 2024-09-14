@@ -6,7 +6,7 @@
 * @brief   Clock Configuration Prototypes
 ***********************************************/
 
-#include "stm32f407xx.h"
+#include "stm32f415xx.h"
 
 /**
  * @brief Configure the System Clock to 168MHz

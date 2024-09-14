@@ -55,7 +55,6 @@ void I2C1_Init() {
     GPIOB->AFR[0] |= (0x4 << GPIO_AFRL_AFSEL6_Pos) | (0x4 << GPIO_AFRL_AFSEL7_Pos); // Set PB6 and PB7 to AF4 (I2C)
 
     // Configure I2C1
-    I2C1->CR1 |= I2C_CR1_ACK; // Enable Acknowledge
     I2C1->CR2 = (42u << I2C_CR2_FREQ_Pos); // Set peripheral clock frequency (42 MHz)
 
     // Configure clock control register for 400kHz I2C speed
@@ -70,6 +69,7 @@ void I2C1_Init() {
 
     // Enable I2C
     I2C1->CR1 |= I2C_CR1_PE;
+    I2C1->CR1 |= I2C_CR1_ACK; // Enable ACK
 }
 
 /**

@@ -6,7 +6,7 @@
 * @brief   Timer Function Prototypes
 ***********************************************/
 
-#include "stm32f407xx.h"
+#include "stm32f415xx.h"
 
 /**
  * @brief Initialize and start Timer 2

@@ -6,7 +6,7 @@
 * @brief   ADC Function Prototypes
 ***********************************************/
 
-#include "stm32f407xx.h"
+#include "stm32f415xx.h"
 
 /**
  * @brief Initialize ADC1

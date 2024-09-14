@@ -16,14 +16,14 @@ osThreadId_t StatusLED;
 const osThreadAttr_t StatusLED_attr = {
   .name = "Status_Task",
   .priority = osPriorityBelowNormal,
-  .stack_size = 128
+  .stack_size = 128 * 4
 };
 
 osThreadId_t CANTask;
 const osThreadAttr_t CANTask_attr = {
   .name = "CAN_Task",
   .priority = osPriorityNormal,
-  .stack_size = 128
+  .stack_size = 128 * 4
 };
 
 void main() {
@@ -32,6 +32,7 @@ void main() {
   // Initialize Peripherals
   Sysclk_168();
   LED_Init();
+  I2C1_Init();
   CAN1_Init();
   CAN_Filters_Init();
   CAN_Start();
@@ -44,18 +45,25 @@ void main() {
   while(1);
 }
 
-void Status_LED(void *argument) {
+void Status_LED() {
   while(1) {
     osDelay(100);
-    Toggle_Pin(GPIOC, 13);
+    Toggle_Pin(GPIOC, STATUS_LED_PIN);
   }
 }
 
-void CAN_Task(void *argument) {
-  volatile CAN_Frame rFrame;
+void CAN_Task() {
+  volatile CAN_Frame rFrame = {
+    .id = 0x123,
+    .data = {8, 6, 5, 3, 2, 4, 1, 5},
+    .dlc = 8,
+    .rtr = CAN_RTR_Data
+  };
+  volatile CAN_Frame tFrame;
   volatile CAN_Status Receive;
 
   while(1) {
+    CAN_Transmit(CAN1, &tFrame);
     Receive = CAN_Receive(CAN1, &rFrame);
     if (Receive == CAN_OK) {
       telemetry.RPM = rFrame.data[0] << 8 | rFrame.data[1];

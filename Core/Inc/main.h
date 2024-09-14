@@ -33,6 +33,12 @@ extern "C" {
 
 #include "gpio.h"
 #include "can.h"
+#include "i2c.h"
+
+/* Macros  ------------------------------------------------------------------*/
+#define STATUS_LED_PIN         13
+#define GPS_ADDR              0x42
+
 /* Data Structures  ---------------------------------------------------------*/
 typedef struct {
   uint16_t RPM;           // RPM
@@ -63,7 +69,7 @@ void Error_Handler(void);
  * 
  * @param argument 
  */
-void Status_LED(void *argument);
+void Status_LED();
 
 /**
  * @brief Thread for handling CAN communication
@@ -71,7 +77,15 @@ void Status_LED(void *argument);
  * 
  * @param argument 
  */
-void CAN_Task(void *argument);
+void CAN_Task();
+
+/**
+ * @brief Thread for handling GPS communication
+ * @note TODO: Implement GPS Task
+ * 
+ * @param argument 
+ */
+void GPS_Task();
 
 /**
  * @brief Main Function to start FreeRTOS and initialize peripherals

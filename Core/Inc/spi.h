@@ -6,7 +6,7 @@
 * @brief   Prototype Functions for SPI Driver
 ***********************************************/
 
-#include "stm32f407xx.h"
+#include "stm32f415xx.h"
 
 /**
  * @brief Initialize SPI2

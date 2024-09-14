@@ -6,7 +6,7 @@
 * @brief   Prototype Functions for I2C Driver
 ***********************************************/
 
-#include "stm32f407xx.h"
+#include "stm32f415xx.h"
 
 /**
  * @brief Initialize I2C1
