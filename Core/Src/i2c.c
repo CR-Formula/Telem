@@ -47,12 +47,14 @@ void I2C1_Init() {
     I2C1->CR1 &= ~I2C_CR1_PE;
 
     // Configure GPIOB for I2C1 (PB6 - SCL, PB7 - SDA)
-    GPIOB->MODER &= ~(GPIO_MODER_MODE6_Msk | GPIO_MODER_MODE7_Msk); // Clear PB6 and PB7
-    GPIOB->MODER |= (0x2 << GPIO_MODER_MODE6_Pos) | (0x2 << GPIO_MODER_MODE7_Pos); // Set PB6 and PB7 to AF mode
-    GPIOB->OTYPER |= (GPIO_OTYPER_OT6 | GPIO_OTYPER_OT7); // Set PB6 and PB7 as open-drain
-    GPIOB->OSPEEDR |= (0x3 << GPIO_OSPEEDR_OSPEED6_Pos) | (0x3 << GPIO_OSPEEDR_OSPEED7_Pos); // Set PB6 and PB7 to high speed
-    GPIOB->PUPDR &= ~(GPIO_PUPDR_PUPD6_Msk | GPIO_PUPDR_PUPD7_Msk); // No pull-up/pull-down
-    GPIOB->AFR[0] |= (0x4 << GPIO_AFRL_AFSEL6_Pos) | (0x4 << GPIO_AFRL_AFSEL7_Pos); // Set PB6 and PB7 to AF4 (I2C)
+    GPIOB->MODER &= ~(GPIO_MODER_MODE6_Msk) & ~(GPIO_MODER_MODE7_Msk);
+    GPIOB->MODER |= (0x2 << GPIO_MODER_MODE6_Pos) | (0x2 << GPIO_MODER_MODE7_Pos);
+    GPIOB->AFR[0] |= (0x4 << GPIO_AFRL_AFSEL6_Pos) | (0x4 << GPIO_AFRL_AFSEL7_Pos);
+    GPIOB->PUPDR &= ~(GPIO_PUPDR_PUPD6_Msk) & ~(GPIO_PUPDR_PUPD7_Msk);
+    GPIOB->PUPDR |= (0x1 << GPIO_PUPDR_PUPD6_Pos) | (0x1 << GPIO_PUPDR_PUPD7_Pos);
+    GPIOB->OSPEEDR &= ~(GPIO_OSPEEDR_OSPEED6_Msk) & ~(GPIO_OSPEEDR_OSPEED7_Msk);
+    GPIOB->OSPEEDR |= (0x3 << GPIO_OSPEEDR_OSPEED6_Pos) | (0x3 << GPIO_OSPEEDR_OSPEED7_Pos);
+    GPIOB->OTYPER |= (GPIO_OTYPER_OT6) | (GPIO_OTYPER_OT7);
 
     // Configure I2C1
     I2C1->CR2 = (42u << I2C_CR2_FREQ_Pos); // Set peripheral clock frequency (42 MHz)

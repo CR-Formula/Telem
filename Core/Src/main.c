@@ -85,8 +85,8 @@ void GPS_Task() {
   volatile uint8_t data;
   volatile uint16_t lat, lon;
 
+  // TODO: Implement pg 27 of GPS Integration Manual
   while(1) {
-    data = I2C_Read(I2C1, GPS_ADDR, 0xFF);
     osDelay(1000);
   }
 }
