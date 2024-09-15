@@ -26,6 +26,13 @@ const osThreadAttr_t CANTask_attr = {
   .stack_size = 128 * 4
 };
 
+osThreadId_t GPSTask;
+const osThreadAttr_t GPSTask_attr = {
+  .name = "GPS_Task",
+  .priority = osPriorityNormal,
+  .stack_size = 128 * 4
+};
+
 void main() {
   osKernelInitialize(); // Initialize FreeRTOS
 
@@ -40,6 +47,7 @@ void main() {
   // Create FreeRTOS Threads
   StatusLED = osThreadNew(Status_LED, NULL, &StatusLED_attr);
   CANTask = osThreadNew(CAN_Task, NULL, &CANTask_attr);
+  GPSTask = osThreadNew(GPS_Task, NULL, &GPSTask_attr);
 
   osKernelStart(); // Start FreeRTOS
   while(1);
@@ -69,6 +77,16 @@ void CAN_Task() {
       telemetry.RPM = rFrame.data[0] << 8 | rFrame.data[1];
       // TODO: Implement CAN Task
     }
+    osDelay(1000);
+  }
+}
+
+void GPS_Task() {
+  volatile uint8_t data;
+  volatile uint16_t lat, lon;
+
+  while(1) {
+    data = I2C_Read(I2C1, GPS_ADDR, 0xFF);
     osDelay(1000);
   }
 }
