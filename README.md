@@ -14,7 +14,7 @@ This Repository stores the embedded code for our real-time telemetry system. The
 ## Dev and Build Tools
 The Firmware for this system is developed in WSL using Arm compilers and make files. To get started, follow the steps below.
 
-1. Install WSL by opening up a Powershell terminal and running the command `wsl --install -d Ubuntu`. This command will set up WSL using an Ubuntu Linux distribution. It will ask for you to create a username and password to complete the setup. Once installed, you can access the Ubuntu terminal by searching for Ubuntu in Windows, or it will be available in VSCode once the setup is complete.
+1. Install WSL by opening up a Powershell terminal and running the command `wsl --install -d Ubuntu`. This command will set up WSL using an Ubuntu Linux distribution. It will ask to create a username and password to complete the setup. When typing the password, no characters will appear, which is normal; just enter your password. Once installed, you can access the Ubuntu terminal by searching for Ubuntu in Windows, or it will be available in VSCode once the setup is complete.
 
 2. Install [usbipd](https://github.com/dorssel/usbipd-win/releases) from the releases page using the .msi file.
 
@@ -32,15 +32,22 @@ Here is a short explanation of each of these tools:
     - GCC-Arm-none-eabi: embedded Arm-specific build tools and compiler.
     - GDB-Multiarch: adds support for microcontroller debugging
     - STLink-Tools: ST-specific tools for developing and uploading embedded code
-7. Finally, we will need to install a handful of VSCode extensions, these give us some tools to upload code to the boards as well as see registers and variables while debugging. These extensions will be recommended to install once you clone the repository and open the root directory in VSCode.
+6. Finally, we are ready to clone the repository. Go to the repository that you will be working on in Github. There is a large green `code` button near the top; click the dropdown arrow next to it and copy the HTTPS. Open a WSL terminal, you can do this by connecting VSCode to a WSL session or just searching wsl in the windows search. Run these commands to clone the repository
+    - `cd` -- Make sure you are in the Linux home directory (folder)
+    - `mkdir formula` -- this will make a folder called formula
+    - `cd formula` -- this changes your current directory to the new `formula` folder
+    - `git clone <paste-link-from-step-6>` -- You have to press `ctrl + shift + v` to paste in the terminal; this command actually downloads the repo
+    - `ls` -- You should see the contents of the git repo in your folder; this command lists the items in the current folder
+7. Once you have cloned the repo, you can run the command `code ./` in the top level of the repository. This will open the repository in VSCode. Once you are in VSCode, a few notifications will appear in the bottom right corner. The only one that is crucial is installing the recommended extensions.
 
-Once you've completed these steps, you can start developing firmware. The best place to start will be the Microcontroller Reference Manual. Read through the section about the peripheral you are trying to work with.
+
+Once you've completed these steps, you can start building and developing firmware. The best place to start will be the Microcontroller Reference Manual. Read through the section about the peripheral you are trying to work with.
 
 ## Building code
 In order to build the code, use Make and Makefiles. Open up an Ubuntu terminal and navigate to the project directory. Next, run the command `make` in the terminal. This will build the code using the instructions in the makefile. Make will only build files you change; if you would like to rebuild the whole project, run the command `make clean` before running `make`.
 
 ## Passing a Device to WSL
-In order to use the WSL enviroment, you'll have to pass the target board/debugger into WSL. This involves using the usbipd tool that we installed earlier.
+In order to use the WSL environment, you'll have to pass the target board/debugger into WSL. This involves using the usbipd tool that we installed earlier.
 
 1. If you are on Windows, open up Powershell as an administrator and run `usbipd list`. This will list all of your current USB devices on your computer. Look for the STMircroelectronics device and note the BusID in the left column.
 
@@ -54,16 +61,16 @@ To debug and upload code, we use the Cortex-Debug extension. This extension uses
     - settings.json has 3 important keys: cortex-debug.armToolchainPath, cortex-debug.gdbPath, and cortex-debug.stutilPath. All of these file paths are universal in WSL/Ubuntu and should be the same if you setup your dev enviroment by following the directions above.
     - launch.json configures the debugging profile for Cortex-Debug. The default values in this file should also work well apart from two: svdFile and device. svdFile is the path to an svd file for the microcontroller that you are using and svd file tells the debugger what peripherials are at what memory addresses and allows for easier debugging. The device will need to match the microcontroller on whichever board you are debugging.
 
-1. Once these files are configured, go to the run and debug window on the left column in VSCode (Looks like a play button with a bug) and you should see an option called Cortex Debug. With the Cortex Debug option selected press the green play button.
+1. Once these files are configured, go to the run and debug window on the left column in VSCode (Looks like a play button with a bug) and you should see an option called Cortex Debug. With the Cortex Debug option selected, press the green play button.
 
 2. This will create a debug menu at the top of the screen to control the debug session which gives you options such as step over, step into, and step out as well as reset and end session.
 
 3. At the bottom of the left column, there is also a xPeripherials option. These are the register values of the device you are debugging and are very useful to find issues.
 
-4. Finally, you are able to set breakpoint by clicking the red dot next to the line number you want to place the breakpoint at. This will stop the code while it is running so that you can look at the register values.
+4. Finally, you are able to set breakpoints by clicking the red dot next to the line number you want to place the breakpoint at. This will stop the code while it is running so that you can look at the register values.
 
 # Telem Mainboard Connections
-TODO: Once finalized, this will list the peripherial connections for the Telem Mainboard for easy reference
+TODO: Once finalized, this will list the peripheral connections for the Telem Mainboard for easy reference
 
 # Links
 - [Linktree](https://linktr.ee/cycloneracing)
