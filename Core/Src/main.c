@@ -11,32 +11,11 @@
 /* Global Variables ---------------------------------------------------------*/
 Telemetry telemetry;
 
-/* Thread Attributes --------------------------------------------------------*/
-osThreadId_t StatusLED;
-const osThreadAttr_t StatusLED_attr = {
-  .name = "Status_Task",
-  .priority = osPriorityBelowNormal,
-  .stack_size = 128 * 4
-};
-
-osThreadId_t CANTask;
-const osThreadAttr_t CANTask_attr = {
-  .name = "CAN_Task",
-  .priority = osPriorityNormal,
-  .stack_size = 128 * 4
-};
-
-osThreadId_t GPSTask;
-const osThreadAttr_t GPSTask_attr = {
-  .name = "GPS_Task",
-  .priority = osPriorityNormal,
-  .stack_size = 128 * 4
-};
-
+/* Function Calls -----------------------------------------------------------*/
 void main() {
   osKernelInitialize(); // Initialize FreeRTOS
 
-  // Initialize Peripherals
+  // Initialize Hardware
   Sysclk_168();
   LED_Init();
   I2C1_Init();
@@ -44,12 +23,16 @@ void main() {
   CAN_Filters_Init();
   CAN_Start();
 
-  // Create FreeRTOS Threads
-  StatusLED = osThreadNew(Status_LED, NULL, &StatusLED_attr);
-  CANTask = osThreadNew(CAN_Task, NULL, &CANTask_attr);
-  GPSTask = osThreadNew(GPS_Task, NULL, &GPSTask_attr);
+  // TODO: May need more RTOS configs
+  // https://www.freertos.org/Documentation/02-Kernel/03-Supported-devices/04-Demos/Device-independent-demo/Hardware-independent-RTOS-example
 
-  osKernelStart(); // Start FreeRTOS
+  // Create FreeRTOS Tasks
+  xTaskCreate(Status_LED, "Status_Task", 128, NULL, 1, NULL);
+  xTaskCreate(CAN_Task, "CAN_Task", 128, NULL, 1, NULL);
+  xTaskCreate(GPS_Task, "GPS_Task", 128, NULL, 1, NULL);
+
+  vTaskStartScheduler(); // Start FreeRTOS Scheduler
+
   while(1);
 }
 
