@@ -62,8 +62,8 @@ void Status_LED() {
 
 void CAN_Task() {
   volatile CAN_Frame rFrame = {
-    .id = 0x123,
-    .data = {8, 6, 5, 3, 2, 4, 1, 5},
+    .id = 0x048,
+    .data = {0, 1, 2, 3, 4, 5, 6, 7},
     .dlc = 8,
     .rtr = CAN_RTR_Data
   };
@@ -72,12 +72,15 @@ void CAN_Task() {
 
   while(1) {
     CAN_Transmit(CAN1, &tFrame);
-    Receive = CAN_Receive(CAN1, &rFrame);
-    if (Receive == CAN_OK) {
-      telemetry.RPM = rFrame.data[0] << 8 | rFrame.data[1];
-      // TODO: Implement CAN Task
-    }
-    osDelay(1000);
+    tFrame.data[0]++;
+    tFrame.data[1]+=2;
+    tFrame.data[2]+=3;
+    tFrame.data[3]+=4;
+    tFrame.data[4]+=5;
+    tFrame.data[5]+=6;
+    tFrame.data[6]+=7;
+    tFrame.data[7]+=8;
+    osDelay(100);
   }
 }
 
