@@ -68,6 +68,11 @@ typedef struct {
 } Telemetry;
 
 /* Functions prototypes -----------------------------------------------------*/
+
+/**
+ * @brief Handles Systems Errors
+ * @note Currently holds LED on in infinite loop
+ */
 void Error_Handler(void);
 
 /**
