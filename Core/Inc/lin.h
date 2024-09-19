@@ -17,7 +17,7 @@ typedef struct {
 typedef enum {
     LIN_Error,
     LIN_OK,
-    LIN_Busy
+    LIN_Busy,
 } LIN_Status;
 
 /* Function Prototypes ------------------------------------------------------*/

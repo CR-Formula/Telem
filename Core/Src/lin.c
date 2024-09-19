@@ -40,3 +40,13 @@ LIN_Status LIN_Init() {
     USART6->CR1 |= USART_CR1_UE; // Enable USART
     return LIN_OK;
 }
+
+LIN_Status LIN_Transmit(USART_TypeDef* USART, LIN_Message* msg) {
+    USART->DR = msg->ID;
+    while((USART->SR & USART_SR_TC) == 0);
+    for(int i = 0; i < 8; i++) {
+        USART->DR = msg->data[i];
+        while((USART->SR & USART_SR_TC) == 0);
+    }
+    return LIN_OK;
+}
