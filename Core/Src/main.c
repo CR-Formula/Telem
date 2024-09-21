@@ -45,13 +45,13 @@ void Status_LED() {
 }
 
 void CAN_Task() {
-  volatile CAN_Frame rFrame = {
+  volatile CAN_Frame tFrame = {
     .id = 0x123,
     .data = {8, 6, 5, 3, 2, 4, 1, 5},
     .dlc = 8,
     .rtr = CAN_RTR_Data
   };
-  volatile CAN_Frame tFrame;
+  volatile CAN_Frame rFrame;
   volatile CAN_Status Receive;
 
   while(1) {
