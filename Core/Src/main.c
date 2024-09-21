@@ -23,9 +23,6 @@ void main() {
   CAN_Filters_Init();
   CAN_Start();
 
-  // TODO: May need more RTOS configs
-  // https://www.freertos.org/Documentation/02-Kernel/03-Supported-devices/04-Demos/Device-independent-demo/Hardware-independent-RTOS-example
-
   // Create FreeRTOS Tasks
   Task_Status &= xTaskCreate(Status_LED, "Status_Task", 128, NULL, 1, NULL);
   Task_Status &= xTaskCreate(CAN_Task, "CAN_Task", 128, NULL, 1, NULL);
