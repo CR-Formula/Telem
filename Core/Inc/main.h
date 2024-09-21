@@ -25,9 +25,15 @@ extern "C" {
 #endif
 
 /* Includes -----------------------------------------------------------------*/
+// OS Specific Includes
+#include "FreeRTOS.h" /* Must come first. */
+#include "task.h" /* RTOS task related API prototypes. */
+#include "queue.h" /* RTOS queue related API prototypes. */
+#include "timers.h" /* Software timer related API prototypes. */
+#include "semphr.h" /* Semaphore related API prototypes. */
+// Hardware Specific Includes
 #include "stm32f4xx_hal.h"
 #include "stm32f415xx.h"
-#include "cmsis_os2.h"
 
 #include <stdint.h>
 
@@ -62,6 +68,11 @@ typedef struct {
 } Telemetry;
 
 /* Functions prototypes -----------------------------------------------------*/
+
+/**
+ * @brief Handles Systems Errors
+ * @note Currently holds LED on in infinite loop
+ */
 void Error_Handler(void);
 
 /**

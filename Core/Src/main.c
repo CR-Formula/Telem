@@ -11,32 +11,11 @@
 /* Global Variables ---------------------------------------------------------*/
 Telemetry telemetry;
 
-/* Thread Attributes --------------------------------------------------------*/
-osThreadId_t StatusLED;
-const osThreadAttr_t StatusLED_attr = {
-  .name = "Status_Task",
-  .priority = osPriorityBelowNormal,
-  .stack_size = 128 * 4
-};
-
-osThreadId_t CANTask;
-const osThreadAttr_t CANTask_attr = {
-  .name = "CAN_Task",
-  .priority = osPriorityNormal,
-  .stack_size = 128 * 4
-};
-
-osThreadId_t GPSTask;
-const osThreadAttr_t GPSTask_attr = {
-  .name = "GPS_Task",
-  .priority = osPriorityNormal,
-  .stack_size = 128 * 4
-};
-
+/* Function Calls -----------------------------------------------------------*/
 void main() {
-  osKernelInitialize(); // Initialize FreeRTOS
+  uint8_t Task_Status = 1;
 
-  // Initialize Peripherals
+  // Initialize Hardware
   Sysclk_168();
   LED_Init();
   I2C1_Init();
@@ -44,12 +23,17 @@ void main() {
   CAN_Filters_Init();
   CAN_Start();
 
-  // Create FreeRTOS Threads
-  StatusLED = osThreadNew(Status_LED, NULL, &StatusLED_attr);
-  CANTask = osThreadNew(CAN_Task, NULL, &CANTask_attr);
-  GPSTask = osThreadNew(GPS_Task, NULL, &GPSTask_attr);
+  // Create FreeRTOS Tasks
+  Task_Status &= xTaskCreate(Status_LED, "Status_Task", 128, NULL, 1, NULL);
+  Task_Status &= xTaskCreate(CAN_Task, "CAN_Task", 128, NULL, 1, NULL);
+  Task_Status &= xTaskCreate(GPS_Task, "GPS_Task", 128, NULL, 1, NULL);
 
-  osKernelStart(); // Start FreeRTOS
+  if (Task_Status != pdPASS) {
+    Error_Handler();
+  }
+
+  vTaskStartScheduler(); // Start FreeRTOS Scheduler
+
   while(1);
 }
 
@@ -89,4 +73,9 @@ void GPS_Task() {
   while(1) {
     osDelay(1000);
   }
+}
+
+void Error_Handler() {
+  Set_Pin(GPIOC, STATUS_LED_PIN);
+  while(1);
 }
