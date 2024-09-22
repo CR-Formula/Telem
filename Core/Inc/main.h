@@ -42,8 +42,8 @@ extern "C" {
 #include "i2c.h"
 
 /* Macros  ------------------------------------------------------------------*/
-#define STATUS_LED_PIN         13
-#define GPS_ADDR              0x42
+#define STATUS_LED_PIN          13
+#define GPS_ADDR                0x42
 
 /* Data Structures  ---------------------------------------------------------*/
 typedef struct {
