@@ -11,3 +11,7 @@
 void GPS_Init() {
 
 }
+
+void Get_Position(GPS_Data* data) {
+    
+}
