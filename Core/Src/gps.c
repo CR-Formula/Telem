@@ -9,6 +9,35 @@
 #include "gps.h"
 
 
+/* Static Functions ---------------------------------------------------------*/
+static GPS_Status checkACK(uint8_t* response, size_t msg_len, uint8_t class, uint8_t id) {
+    if (response[UBX_ACK_CLASS] == class && 
+        response[UBX_ACK_ID] == id) {
+        return GPS_OK;
+    } else {
+        return GPS_ERROR;
+    }
+}
+
+static GPS_Status calcChecksum(uint8_t* msg, size_t msg_len, uint8_t* CK_A, uint8_t* CK_B) {
+    for (int i = 0; i < msg[UBX_LEN_Pos]; i++) {
+        *CK_A += msg[i + UBX_PAYLOAD_START];
+        *CK_B += *CK_A;
+    }
+    return GPS_OK;
+}
+
+static GPS_Status littleEndian(uint8_t* data, size_t len) {
+    for (int i = 0; i < len; i += 2) {
+        uint8_t temp = data[i];
+        data[i] = data[i + 1];
+        data[i + 1] = temp;
+    }
+    return GPS_OK;
+}
+
+
+/* Function Implementation --------------------------------------------------*/
 GPS_Status GPS_Init() {
     uint8_t ubx_msg[] = {
         0xB5, 0x62, // Sync Chars
@@ -35,10 +64,10 @@ GPS_Status GPS_Init() {
 }
 
 GPS_Status Get_Position(GPS_Data* data) {
-    
+    // TODO: Send and parse UBX message for Lat, Lng, and Speed
 }
 
-GPS_Status I2C_Send_UBX(I2C_TypeDef* I2C, uint8_t dev, uint8_t* msg, size_t msg_len) {
+GPS_Status I2C_Send_UBX_CFG(I2C_TypeDef* I2C, uint8_t dev, uint8_t* msg, size_t msg_len) {
     uint8_t response[9];
     size_t response_len;
 
