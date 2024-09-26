@@ -22,6 +22,7 @@ void main() {
   CAN1_Init();
   CAN_Filters_Init();
   CAN_Start();
+  GPS_Init();
 
   // Create FreeRTOS Tasks
   Task_Status &= xTaskCreate(Status_LED, "Status_Task", 128, NULL, 1, NULL);
@@ -45,7 +46,7 @@ void Status_LED() {
 }
 
 void CAN_Task() {
-  volatile CAN_Frame tFrame = {
+  CAN_Frame tFrame = {
     .id = 0x123,
     .data = {8, 6, 5, 3, 2, 4, 1, 5},
     .dlc = 8,
@@ -69,9 +70,8 @@ void GPS_Task() {
   volatile uint8_t data;
   volatile uint16_t lat, lon;
 
-  // TODO: Implement pg 27 of GPS Integration Manual
   while(1) {
-    osDelay(1000);
+    osDelay(40); // 25Hz rate = 40ms period
   }
 }
 

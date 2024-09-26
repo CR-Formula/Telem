@@ -39,7 +39,7 @@ extern "C" {
 
 #include "gpio.h"
 #include "can.h"
-#include "i2c.h"
+#include "gps.h"
 
 /* Macros  ------------------------------------------------------------------*/
 #define STATUS_LED_PIN          13
@@ -71,7 +71,8 @@ typedef struct {
 
 /**
  * @brief Handles Systems Errors
- * @note Currently holds LED on in infinite loop
+ * @note Holds Status LED on until reset
+ * @todo Create Blink status codes for errors
  */
 void Error_Handler(void);
 

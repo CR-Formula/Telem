@@ -6,9 +6,7 @@
 * @brief   I2C Driver Implementation
 ***********************************************/
 
-#include <stddef.h>
-
-#include "stm32f415xx.h"
+#include "i2c.h"
 
 /**
  * @brief Generate I2C Start Condition
@@ -34,7 +32,7 @@ void __Stop(I2C_TypeDef* I2C) {
  * @brief Initialize I2C1
  * @note FM, 400kHz, 7-bit Addressing
  */
-void I2C1_Init() {
+I2C_Status I2C1_Init() {
     // Enable I2C1 and GPIOB Clocks
     RCC->APB1ENR |= RCC_APB1ENR_I2C1EN;
     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN;
@@ -107,7 +105,7 @@ void I2C_Write(I2C_TypeDef* I2C, uint8_t dev, uint8_t* data, size_t len) {
  * @param dev [uint8_t] Address of device [7-bit]
  * @param reg [uint8_t] Register to read
  */
-uint8_t I2C_Read(I2C_TypeDef* I2C, uint8_t dev, uint8_t reg) {
+uint8_t I2C_Read_Reg(I2C_TypeDef* I2C, uint8_t dev, uint8_t reg) {
     uint8_t data = 0;
 
     __Start(I2C);
@@ -125,7 +123,7 @@ uint8_t I2C_Read(I2C_TypeDef* I2C, uint8_t dev, uint8_t reg) {
     __Start(I2C);
 
     // Send address
-    I2C->DR = (dev << 1) | 0x01; // Send address with write bit
+    I2C->DR = (dev << 1) | 0x01; // Send address with read bit
     while (!(I2C->SR1 & I2C_SR1_ADDR)); // Wait for address to be sent
     (void) I2C->SR2; // Clear address flag by reading SR1 and SR2
 
@@ -136,4 +134,23 @@ uint8_t I2C_Read(I2C_TypeDef* I2C, uint8_t dev, uint8_t reg) {
     __Stop(I2C);
 
     return data;
+}
+
+I2C_Status I2C_Read(I2C_TypeDef* I2C, uint8_t dev, uint8_t* data, size_t len) {
+    __Start(I2C);
+
+    // Send address
+    I2C->DR = (dev << 1) | 0x01; // Send address with read bit
+    while (!(I2C->SR1 & I2C_SR1_ADDR)); // Wait for address to be sent
+    (void) I2C->SR2; // Clear address flag by reading SR1 and SR2
+
+    for (size_t i = 0; i < len; i++) {
+        // Read data
+        while (!(I2C->SR1 & I2C_SR1_RXNE)); // Wait for data to be received
+        data[i] = (uint8_t)I2C->DR;
+    }
+
+    __Stop(I2C);
+
+    return I2C_OK;
 }
