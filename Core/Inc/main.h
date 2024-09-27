@@ -54,14 +54,14 @@ typedef struct {
   uint16_t Lam;           // Lambda
   uint16_t AirT;          // Air Temp
   uint16_t CoolT;         // Coolant Temp
-  uint16_t Speed;         // Vehicle Speed
+  int32_t Speed;         // Vehicle Speed
   uint16_t OilP;          // Oil Pressure
   uint16_t FRTemp;        // Front Right Brake Temp
   uint16_t RRTemp;        // Rear Right Brake Temp
   uint16_t FRPot;         // Front Right Suspension Damper
   uint16_t RRPot;         // Rear Right Suspension Damper
-  uint16_t latGPS;        // Latitude GPS
-  uint16_t longGPS;       // Longitude GPS
+  int32_t latGPS;         // Latitude GPS
+  int32_t longGPS;        // Longitude GPS
   uint16_t AccX;          // Accelerometer X Axis
   uint16_t AccZ;          // Accelerometer Z Axis
   uint16_t AccY;          // Accelerometer Y Axis

@@ -19,6 +19,12 @@
 #define UBX_PAYLOAD_START               0x06
 #define UBX_ACK_CLASS                   0x06
 #define UBX_ACK_ID                      0x07
+#define UBX_PVT_CLASS                   0x01
+#define UBX_PVT_ID                      0x07
+#define UBX_PVT_LEN                     0x92
+#define UBX_PVT_LON_Pos                 0x18
+#define UBX_PVT_LAT_Pos                 0x1C
+#define UBX_PVT_SPD_Pos                 0x3C
 
 /* Structs and Enums --------------------------------------------------------*/
 typedef struct {
@@ -26,11 +32,16 @@ typedef struct {
     uint8_t preable2;
     uint8_t class;
     uint8_t id;
-    uint8_t len;
+    uint16_t len;
     uint8_t* payload;
     uint8_t CK_A;
     uint8_t CK_B;
 } UBX_Message;
+
+typedef struct {
+    uint8_t buffer[92];
+    size_t index;
+} UBX_Parser;
 
 typedef enum {
     GPS_OK = 0,
@@ -38,9 +49,9 @@ typedef enum {
 } GPS_Status;
 
 typedef struct {
-    uint32_t latitude;
-    uint32_t longitude;
-    uint32_t speed;
+    int32_t latitude;
+    int32_t longitude;
+    int32_t speed;
 } GPS_Data;
 
 

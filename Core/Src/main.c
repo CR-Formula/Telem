@@ -22,14 +22,14 @@ void main() {
   CAN1_Init();
   CAN_Filters_Init();
   CAN_Start();
-  GPS_Init();
+  GPS_Status GPS = GPS_Init();
 
   // Create FreeRTOS Tasks
   Task_Status &= xTaskCreate(Status_LED, "Status_Task", 128, NULL, 1, NULL);
   Task_Status &= xTaskCreate(CAN_Task, "CAN_Task", 128, NULL, 1, NULL);
   Task_Status &= xTaskCreate(GPS_Task, "GPS_Task", 128, NULL, 1, NULL);
 
-  if (Task_Status != pdPASS) {
+  if (Task_Status != pdPASS || GPS != GPS_OK) {
     Error_Handler();
   }
 
@@ -67,10 +67,13 @@ void CAN_Task() {
 }
 
 void GPS_Task() {
-  volatile uint8_t data;
-  volatile uint16_t lat, lon;
+  volatile GPS_Data data;
 
   while(1) {
+    Get_Position(&data);
+    telemetry.latGPS = data.latitude;
+    telemetry.longGPS = data.longitude;
+    telemetry.Speed = data.speed;
     osDelay(40); // 25Hz rate = 40ms period
   }
 }
