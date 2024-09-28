@@ -36,6 +36,10 @@ static GPS_Status littleEndian(uint8_t* data, size_t len) {
     return GPS_OK;
 }
 
+static GPS_Status checkAvailableBytes(I2C_TypeDef* I2C, uint8_t dev, size_t bytes) {
+    // Check the registers 0xFD and 0xFE for number of available bytes
+}
+
 
 /* Function Implementation --------------------------------------------------*/
 GPS_Status GPS_Init() {
@@ -119,6 +123,8 @@ GPS_Status I2C_Send_UBX_CFG(I2C_TypeDef* I2C, uint8_t dev, uint8_t* msg, size_t 
 
     // Send UBX message
     I2C_Write(I2C, dev, msg, msg_len);
+
+    // Need to check for avaiable bytes to read
 
     // Check for UBX-ACK-ACK
     I2C_Read(I2C, dev, &parser.buffer, sizeof(parser.buffer));
