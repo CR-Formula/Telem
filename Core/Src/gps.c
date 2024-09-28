@@ -36,10 +36,6 @@ static GPS_Status littleEndian(uint8_t* data, size_t len) {
     return GPS_OK;
 }
 
-static GPS_Status checkAvailableBytes(I2C_TypeDef* I2C, uint8_t dev, size_t bytes) {
-    // Check the registers 0xFD and 0xFE for number of available bytes
-}
-
 
 /* Function Implementation --------------------------------------------------*/
 GPS_Status GPS_Init() {
@@ -79,39 +75,7 @@ GPS_Status GPS_Init() {
 }
 
 GPS_Status Get_Position(GPS_Data* data) {
-    UBX_Parser parser = {
-        .buffer = {0},
-        .index = 0
-    };
-    uint8_t UBXPVT[] = {
-        0xB5, 0x62, // Sync Chars
-        0x01, 0x07, // Class (NAV), ID (PVT)
-        0x00, 0x00, // Length of payload (0 bytes for polling)
-    };
-
-    I2C_Write(I2C1, GPS_ADDR, UBXPVT, sizeof(UBXPVT));
-
-    I2C_Read(I2C1, GPS_ADDR, parser.buffer, sizeof(parser.buffer));
-    data->latitude = (int32_t)(parser.buffer[UBX_PVT_LAT_Pos] | 
-                                parser.buffer[UBX_PVT_LAT_Pos + 1] << 16 | 
-                                parser.buffer[UBX_PVT_LAT_Pos + 2] << 8 | 
-                                parser.buffer[UBX_PVT_LAT_Pos + 3]<< 24);
-
-    data->longitude = (int32_t)(parser.buffer[UBX_PVT_LON_Pos] | 
-                                parser.buffer[UBX_PVT_LON_Pos + 1] << 8 | 
-                                parser.buffer[UBX_PVT_LON_Pos + 2] << 16 | 
-                                parser.buffer[UBX_PVT_LON_Pos + 3] << 24);
-
-    data->speed = (int32_t)(parser.buffer[UBX_PVT_SPD_Pos] |
-                            parser.buffer[UBX_PVT_SPD_Pos + 1] << 8 |
-                            parser.buffer[UBX_PVT_SPD_Pos + 2] << 16 |
-                            parser.buffer[UBX_PVT_SPD_Pos + 3] << 24);
-
-    data->latitude = data->latitude * 1e-7; // degrees
-    data->longitude = data->longitude * 1e-7; // degrees
-    data->speed = data->speed * 1e-3; // m/s
-    
-    return GPS_OK;
+    // TODO: Get the Position and Speed Data
 }
 
 GPS_Status I2C_Send_UBX_CFG(I2C_TypeDef* I2C, uint8_t dev, uint8_t* msg, size_t msg_len) {
@@ -123,8 +87,6 @@ GPS_Status I2C_Send_UBX_CFG(I2C_TypeDef* I2C, uint8_t dev, uint8_t* msg, size_t 
 
     // Send UBX message
     I2C_Write(I2C, dev, msg, msg_len);
-
-    // Need to check for avaiable bytes to read
 
     // Check for UBX-ACK-ACK
     I2C_Read(I2C, dev, &parser.buffer, sizeof(parser.buffer));

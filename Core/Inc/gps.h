@@ -11,6 +11,8 @@
 
 /* Macros -------------------------------------------------------------------*/
 #define GPS_ADDR                        0x42
+#define MSB_REG                         0xFD
+#define LSB_REG                         0xFE
 #define UBX_PREABLE1                    0xB5
 #define UBX_PREABLE2                    0x62
 #define UBX_CLASS_Pos                   0x02
@@ -87,16 +89,6 @@ static GPS_Status calcChecksum(uint8_t* msg, size_t msg_len, uint8_t* CK_A, uint
  * @return GPS_Status 
  */
 static GPS_Status littleEndian(uint8_t* data, size_t len);
-
-/**
- * @brief Poll the GPS Module for number of available bytes
- * 
- * @param I2C [I2C_TypeDef*] Peripheral to use
- * @param dev [uint8_t] Address of device [7-bit]
- * @param bytes [size_t] Number of bytes to check for
- * @return GPS_Status 
- */
-static GPS_Status checkAvailableBytes(I2C_TypeDef* I2C, uint8_t dev, size_t bytes);
 
 /* Function Prototypes ------------------------------------------------------*/
 
