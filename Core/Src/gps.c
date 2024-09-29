@@ -36,6 +36,14 @@ static GPS_Status littleEndian(uint8_t* data, size_t len) {
     return GPS_OK;
 }
 
+static GPS_Status getAvailableBytes(I2C_TypeDef* I2C, uint8_t dev, size_t* len) {
+    uint8_t data[2];
+    data[0] = I2C_Read_Reg(I2C, dev, MSB_REG);
+    data[1] = I2C_Read_Reg(I2C, dev, LSB_REG);
+    *len = data[0] << 8 | data[1];
+    return GPS_OK;
+}
+
 
 /* Function Implementation --------------------------------------------------*/
 GPS_Status GPS_Init() {
@@ -87,6 +95,9 @@ GPS_Status I2C_Send_UBX_CFG(I2C_TypeDef* I2C, uint8_t dev, uint8_t* msg, size_t 
 
     // Send UBX message
     I2C_Write(I2C, dev, msg, msg_len);
+
+    uint16_t len;
+    getAvailableBytes(I2C, dev, &len);
 
     // Check for UBX-ACK-ACK
     I2C_Read(I2C, dev, &parser.buffer, sizeof(parser.buffer));
