@@ -20,8 +20,8 @@ static GPS_Status checkACK(uint8_t* response, size_t msg_len, uint8_t class, uin
 }
 
 static GPS_Status calcChecksum(uint8_t* msg, size_t msg_len, uint8_t* CK_A, uint8_t* CK_B) {
-    for (int i = 0; i < msg[UBX_LEN_Pos]; i++) {
-        *CK_A += msg[i + UBX_PAYLOAD_START];
+    for (size_t i = 0; i < msg_len; i++) {
+        *CK_A += msg[i];
         *CK_B += *CK_A;
     }
     return GPS_OK;
@@ -37,9 +37,9 @@ static GPS_Status littleEndian(uint8_t* data, size_t len) {
 }
 
 static GPS_Status getAvailableBytes(I2C_TypeDef* I2C, uint8_t dev, size_t* len) {
+    *len = 0;
     uint8_t data[2];
-    data[0] = I2C_Read_Reg(I2C, dev, MSB_REG);
-    data[1] = I2C_Read_Reg(I2C, dev, LSB_REG);
+    I2C_Read(I2C, dev, data, 2);
     *len = data[0] << 8 | data[1];
     return GPS_OK;
 }

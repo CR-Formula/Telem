@@ -74,7 +74,7 @@ static GPS_Status checkACK(uint8_t* msg, size_t msg_len, uint8_t class, uint8_t 
  * @brief Static Function to calculate UBX Checksum
  * 
  * @param msg [uint8_t*] Message to calculate checksum for
- * @param msg_len [size_t] Length of Message
+ * @param msg_len [size_t] Length of Message Payload
  * @param CK_A [uint8_t*] Pointer to CK_A
  * @param CK_B [uint8_t*] Pointer to CK_B
  * @return GPS_Status 

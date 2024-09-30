@@ -72,14 +72,6 @@ I2C_Status I2C1_Init() {
     I2C1->CR1 |= I2C_CR1_ACK; // Enable ACK
 }
 
-/**
- * @brief Send a data byte over I2C
- * 
- * @param I2C [I2C_TypeDef*] Peripheral to use
- * @param dev [uint8_t] Address of device [7-bit]
- * @param data [uint8_t] Data to send [8-bit]
- * @param len [size_t] Length of data buffer
- */
 void I2C_Write(I2C_TypeDef* I2C, uint8_t dev, uint8_t* data, size_t len) {
     
     __Start(I2C);
@@ -137,6 +129,8 @@ uint8_t I2C_Read_Reg(I2C_TypeDef* I2C, uint8_t dev, uint8_t reg) {
 }
 
 I2C_Status I2C_Read(I2C_TypeDef* I2C, uint8_t dev, uint8_t* data, size_t len) {
+    I2C->CR1 &= ~I2C_CR1_POS; // Disable POS
+    I2C->CR1 |= I2C_CR1_ACK; // Enable ACK
     __Start(I2C);
 
     // Send address
@@ -146,8 +140,9 @@ I2C_Status I2C_Read(I2C_TypeDef* I2C, uint8_t dev, uint8_t* data, size_t len) {
 
     for (size_t i = 0; i < len; i++) {
         // Read data
-        while (!(I2C->SR1 & I2C_SR1_RXNE)); // Wait for data to be received
+        while ((I2C->SR1 & I2C_SR1_TXE)); // Wait for data to be received
         data[i] = (uint8_t)I2C->DR;
+        while (!(I2C->SR1 & I2C_SR1_BTF)); // wait for byte transfer to finish
     }
 
     __Stop(I2C);
