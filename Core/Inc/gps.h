@@ -10,9 +10,10 @@
 #include "i2c.h"
 
 /* Macros -------------------------------------------------------------------*/
-#define GPS_ADDR                        0x42
-#define MSB_REG                         0xFD
-#define LSB_REG                         0xFE
+#define M9N_ADDR                        0x42
+#define M9N_MSB_REG                     0xFD
+#define M9N_LSB_REG                     0xFE
+#define M9N_DATA_REG                    0xFF
 #define UBX_PREABLE1                    0xB5
 #define UBX_PREABLE2                    0x62
 #define UBX_CLASS_Pos                   0x02
@@ -28,6 +29,8 @@
 #define UBX_PVT_LAT_Pos                 0x1C
 #define UBX_PVT_SPD_Pos                 0x3C
 
+#define RETRY_COUNT                     10
+
 /* Structs and Enums --------------------------------------------------------*/
 typedef struct {
     uint8_t preable1;
@@ -41,7 +44,7 @@ typedef struct {
 } UBX_Message;
 
 typedef struct {
-    uint8_t buffer[92];
+    uint8_t buffer[128];
     size_t index;
 } UBX_Parser;
 

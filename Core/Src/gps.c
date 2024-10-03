@@ -36,10 +36,12 @@ static GPS_Status littleEndian(uint8_t* data, size_t len) {
     return GPS_OK;
 }
 
-static GPS_Status getAvailableBytes(I2C_TypeDef* I2C, uint8_t dev, size_t* len) {
+static size_t getAvailableBytes(I2C_TypeDef* I2C, uint8_t dev, size_t* len) {
     *len = 0;
     uint8_t data[2];
-    I2C_Read(I2C, dev, data, 2);
+    // I2C_Read(I2C, dev, data, 2);
+    data[0] = I2C_Read_Reg(I2C, dev, M9N_MSB_REG);
+    data[1] = I2C_Read_Reg(I2C, dev, M9N_LSB_REG);
     *len = data[0] << 8 | data[1];
     return GPS_OK;
 }
@@ -75,7 +77,7 @@ GPS_Status GPS_Init() {
     ubx_msg[sizeof(ubx_msg) - 2] = checksumA;
     ubx_msg[sizeof(ubx_msg) - 1] = checksumB;
     
-    if (I2C_Send_UBX_CFG(I2C1, GPS_ADDR, ubx_msg, sizeof(ubx_msg)) == GPS_ERROR) {
+    if (I2C_Send_UBX_CFG(I2C1, M9N_ADDR, ubx_msg, sizeof(ubx_msg)) == GPS_ERROR) {
         return GPS_ERROR;
     }
 
@@ -96,22 +98,25 @@ GPS_Status I2C_Send_UBX_CFG(I2C_TypeDef* I2C, uint8_t dev, uint8_t* msg, size_t 
     // Send UBX message
     I2C_Write(I2C, dev, msg, msg_len);
 
-    uint16_t len;
-    getAvailableBytes(I2C, dev, &len);
-
-    // Check for UBX-ACK-ACK
-    I2C_Read(I2C, dev, &parser.buffer, sizeof(parser.buffer));
-
-    while (parser.index < (sizeof(parser.buffer) - 1)) {
-        if (parser.buffer[parser.index] == UBX_PREABLE1 && 
-            parser.buffer[parser.index + 1] == UBX_PREABLE2) {
-            break;
-        }
-        parser.index++;
+    volatile uint16_t len = 0;
+    
+    while (len == 0) {
+        getAvailableBytes(I2C, dev, &len);
     }
 
-    if (parser.buffer[parser.index + UBX_ACK_CLASS] == msg[UBX_CLASS_Pos] && 
-        parser.buffer[parser.index + UBX_ACK_ID] == msg[UBX_ID_Pos]) {
+    // Check for UBX-ACK-ACK
+    I2C_Read(I2C, dev, &parser.buffer, M9N_DATA_REG, len);
+
+    // while (parser.index < (sizeof(parser.buffer) - 1)) {
+    //     if (parser.buffer[parser.index] == UBX_PREABLE1 && 
+    //         parser.buffer[parser.index + 1] == UBX_PREABLE2) {
+    //         break;
+    //     }
+    //     parser.index++;
+    // }
+
+    if (parser.buffer[UBX_ACK_CLASS] == msg[UBX_CLASS_Pos] && 
+        parser.buffer[UBX_ACK_ID] == msg[UBX_ID_Pos]) {
         return GPS_OK;
     } else {
         return GPS_ERROR;
