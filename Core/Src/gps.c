@@ -27,15 +27,6 @@ static GPS_Status calcChecksum(uint8_t* msg, size_t msg_len, uint8_t* CK_A, uint
     return GPS_OK;
 }
 
-static GPS_Status littleEndian(uint8_t* data, size_t len) {
-    for (int i = 0; i < len; i += 2) {
-        uint8_t temp = data[i];
-        data[i] = data[i + 1];
-        data[i + 1] = temp;
-    }
-    return GPS_OK;
-}
-
 static size_t getAvailableBytes(I2C_TypeDef* I2C, uint8_t dev, size_t* len) {
     *len = 0;
     uint8_t data[2];
