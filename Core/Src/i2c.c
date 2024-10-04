@@ -154,7 +154,7 @@ I2C_Status I2C_Read(I2C_TypeDef* I2C, uint8_t dev, uint8_t reg, uint8_t* data, s
         // Read data
         while ((I2C->SR1 & I2C_SR1_TXE)); // Wait for data to be received
         data[i] = (uint8_t)I2C->DR;
-        while (!(I2C->SR1 & I2C_SR1_BTF)); // wait for byte transfer to finish
+        // while (!(I2C->SR1 & I2C_SR1_BTF)); // wait for byte transfer to finish
     }
 
     // Read last byte

@@ -105,7 +105,11 @@ GPS_Status I2C_Send_UBX_CFG(I2C_TypeDef* I2C, uint8_t dev, uint8_t* msg, size_t 
     }
 
     // Check for UBX-ACK-ACK
-    I2C_Read(I2C, dev, &parser.buffer, M9N_DATA_REG, len);
+    // I2C_Read(I2C, dev, &parser.buffer, M9N_DATA_REG, len);
+
+    for (size_t i = 0; i < len; i++) {
+        parser.buffer[i] = I2C_Read_Reg(I2C, dev, M9N_DATA_REG);
+    }
 
     // while (parser.index < (sizeof(parser.buffer) - 1)) {
     //     if (parser.buffer[parser.index] == UBX_PREABLE1 && 
