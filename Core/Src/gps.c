@@ -63,12 +63,39 @@ GPS_Status GPS_Init() {
 }
 
 GPS_Status Get_Position(GPS_Data* data) {
+    volatile uint16_t len = 0;
     uint8_t poll_nav_pvt[] = {
         UBX_PREABLE1, UBX_PREABLE2, // Sync Chars
         0x01, 0x07, // Class (NAV), ID (PVT)
         0x00, 0x00, // Length of payload (0 bytes)
         0x08, 0x19  // Checksum
     };
+    UBX_Parser parser = {
+        .buffer = {0},
+        .index = 0
+    };
+
+    // Write PVT Poll Request
+    I2C_Write(I2C1, M9N_ADDR, poll_nav_pvt, sizeof(poll_nav_pvt));
+
+    while (len == 0) {
+        getAvailableBytes(I2C1, M9N_ADDR, &len);
+    }
+
+    I2C_Read(I2C1, M9N_ADDR, M9N_DATA_REG, parser.buffer, len);
+
+    data->latitude = parser.buffer[UBX_PVT_LAT_Pos] << 24 | 
+                     parser.buffer[UBX_PVT_LAT_Pos + 1] << 16 | 
+                     parser.buffer[UBX_PVT_LAT_Pos + 2] << 8 | 
+                     parser.buffer[UBX_PVT_LAT_Pos + 3];
+    data->longitude = parser.buffer[UBX_PVT_LON_Pos] << 24 | 
+                      parser.buffer[UBX_PVT_LON_Pos + 1] << 16 | 
+                      parser.buffer[UBX_PVT_LON_Pos + 2] << 8 | 
+                      parser.buffer[UBX_PVT_LON_Pos + 3];
+    data->speed = parser.buffer[UBX_PVT_SPD_Pos] << 24 |
+                  parser.buffer[UBX_PVT_SPD_Pos + 1] << 16 |
+                  parser.buffer[UBX_PVT_SPD_Pos + 2] << 8 |
+                  parser.buffer[UBX_PVT_SPD_Pos + 3];
 }
 
 GPS_Status I2C_Send_UBX_CFG(I2C_TypeDef* I2C, uint8_t dev, uint8_t* msg, size_t msg_len) {

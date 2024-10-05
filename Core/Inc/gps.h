@@ -25,9 +25,9 @@
 #define UBX_PVT_CLASS                   0x01
 #define UBX_PVT_ID                      0x07
 #define UBX_PVT_LEN                     0x92
-#define UBX_PVT_LON_Pos                 0x18
-#define UBX_PVT_LAT_Pos                 0x1C
-#define UBX_PVT_SPD_Pos                 0x3C
+#define UBX_PVT_LON_Pos                 (0x18 + UBX_PAYLOAD_START)
+#define UBX_PVT_LAT_Pos                 (0x1C + UBX_PAYLOAD_START)
+#define UBX_PVT_SPD_Pos                 (0x3C + UBX_PAYLOAD_START)
 
 #define RETRY_COUNT                     10
 
