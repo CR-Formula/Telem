@@ -52,21 +52,8 @@ GPS_Status GPS_Init() {
         0x01, 0x00, 0x21, 0x30, // CFG-RATE-MEAS Key (0x30210001 in little-endian)
         // Value for CFG-RATE-MEAS (40 ms for 25 Hz)
         0x28, 0x00, 0x00, 0x00, // 40 ms (in little-endian)
-        0x00, 0x00  // Checksum placeholder
+        0x17, 0x87  // Checksum
     };
-
-    // Calculate checksum for the message
-    uint8_t checksumA = 0;
-    uint8_t checksumB = 0;
-    
-    // Checksum starts after sync chars (index 2), and includes Class, ID, Length, and Payload
-    for (int i = 2; i < sizeof(ubx_msg) - 2; i++) {
-        checksumA += ubx_msg[i];
-        checksumB += checksumA;
-    }
-
-    ubx_msg[sizeof(ubx_msg) - 2] = checksumA;
-    ubx_msg[sizeof(ubx_msg) - 1] = checksumB;
     
     if (I2C_Send_UBX_CFG(I2C1, M9N_ADDR, ubx_msg, sizeof(ubx_msg)) == GPS_ERROR) {
         return GPS_ERROR;
@@ -80,7 +67,7 @@ GPS_Status Get_Position(GPS_Data* data) {
         UBX_PREABLE1, UBX_PREABLE2, // Sync Chars
         0x01, 0x07, // Class (NAV), ID (PVT)
         0x00, 0x00, // Length of payload (0 bytes)
-        0x08, 0x19  // Checksum placeholder
+        0x08, 0x19  // Checksum
     };
 }
 
@@ -101,10 +88,6 @@ GPS_Status I2C_Send_UBX_CFG(I2C_TypeDef* I2C, uint8_t dev, uint8_t* msg, size_t 
 
     // Check for UBX-ACK-ACK
     I2C_Read(I2C, dev, M9N_DATA_REG, &parser.buffer, len);
-
-    // for (size_t i = 0; i < len; i++) {
-    //     parser.buffer[i] = I2C_Read_Reg(I2C, dev, M9N_DATA_REG);
-    // }
 
     if (parser.buffer[UBX_ACK_CLASS] == msg[UBX_CLASS_Pos] && 
         parser.buffer[UBX_ACK_ID] == msg[UBX_ID_Pos]) {
