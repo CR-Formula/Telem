@@ -59,7 +59,6 @@ typedef struct {
     int32_t speed;
 } GPS_Data;
 
-
 /* Static Functions ---------------------------------------------------------*/
 
 /**

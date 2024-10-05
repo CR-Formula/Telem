@@ -76,11 +76,17 @@ GPS_Status GPS_Init() {
 }
 
 GPS_Status Get_Position(GPS_Data* data) {
-    // TODO: Get the Position and Speed Data
+    uint8_t poll_nav_pvt[] = {
+        UBX_PREABLE1, UBX_PREABLE2, // Sync Chars
+        0x01, 0x07, // Class (NAV), ID (PVT)
+        0x00, 0x00, // Length of payload (0 bytes)
+        0x08, 0x19  // Checksum placeholder
+    };
 }
 
 GPS_Status I2C_Send_UBX_CFG(I2C_TypeDef* I2C, uint8_t dev, uint8_t* msg, size_t msg_len) {
     uint8_t UBXAck[10];
+    volatile uint16_t len = 0;
     UBX_Parser parser = {
         .buffer = {0},
         .index = 0
@@ -88,26 +94,16 @@ GPS_Status I2C_Send_UBX_CFG(I2C_TypeDef* I2C, uint8_t dev, uint8_t* msg, size_t 
 
     // Send UBX message
     I2C_Write(I2C, dev, msg, msg_len);
-
-    volatile uint16_t len = 0;
     
     while (len == 0) {
         getAvailableBytes(I2C, dev, &len);
     }
 
     // Check for UBX-ACK-ACK
-    // I2C_Read(I2C, dev, &parser.buffer, M9N_DATA_REG, len);
+    I2C_Read(I2C, dev, M9N_DATA_REG, &parser.buffer, len);
 
-    for (size_t i = 0; i < len; i++) {
-        parser.buffer[i] = I2C_Read_Reg(I2C, dev, M9N_DATA_REG);
-    }
-
-    // while (parser.index < (sizeof(parser.buffer) - 1)) {
-    //     if (parser.buffer[parser.index] == UBX_PREABLE1 && 
-    //         parser.buffer[parser.index + 1] == UBX_PREABLE2) {
-    //         break;
-    //     }
-    //     parser.index++;
+    // for (size_t i = 0; i < len; i++) {
+    //     parser.buffer[i] = I2C_Read_Reg(I2C, dev, M9N_DATA_REG);
     // }
 
     if (parser.buffer[UBX_ACK_CLASS] == msg[UBX_CLASS_Pos] && 
