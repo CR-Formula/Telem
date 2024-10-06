@@ -27,14 +27,14 @@ static GPS_Status calcChecksum(uint8_t* msg, size_t msg_len, uint8_t* CK_A, uint
     return GPS_OK;
 }
 
-static size_t getAvailableBytes(I2C_TypeDef* I2C, uint8_t dev, size_t* len) {
-    *len = 0;
+uint16_t getAvailableBytes(I2C_TypeDef* I2C, uint8_t dev) {
+    uint16_t len = 0;
     uint8_t data[2];
     // I2C_Read(I2C, dev, data, 2);
     data[0] = I2C_Read_Reg(I2C, dev, M9N_MSB_REG);
     data[1] = I2C_Read_Reg(I2C, dev, M9N_LSB_REG);
-    *len = data[0] << 8 | data[1];
-    return GPS_OK;
+    len = data[0] << 8 | data[1];
+    return len;
 }
 
 
@@ -64,6 +64,7 @@ GPS_Status GPS_Init() {
 
 GPS_Status Get_Position(GPS_Data* data) {
     volatile uint16_t len = 0;
+    uint8_t count = 0;
     uint8_t poll_nav_pvt[] = {
         UBX_PREABLE1, UBX_PREABLE2, // Sync Chars
         0x01, 0x07, // Class (NAV), ID (PVT)
@@ -78,24 +79,37 @@ GPS_Status Get_Position(GPS_Data* data) {
     // Write PVT Poll Request
     I2C_Write(I2C1, M9N_ADDR, poll_nav_pvt, sizeof(poll_nav_pvt));
 
-    while (len == 0) {
-        getAvailableBytes(I2C1, M9N_ADDR, &len);
+    while (len == 0 && count < RETRY_COUNT) {
+        len = getAvailableBytes(I2C1, M9N_ADDR);
+        count++;
+    }
+
+    // Check for Max Length and Retry Count
+    if (count >= RETRY_COUNT) {
+        return GPS_ERROR;
+    }
+    
+    if (len > sizeof(parser.buffer)) {
+        len = sizeof(parser.buffer);
     }
 
     I2C_Read(I2C1, M9N_ADDR, M9N_DATA_REG, parser.buffer, len);
 
-    data->latitude = parser.buffer[UBX_PVT_LAT_Pos] << 24 | 
-                     parser.buffer[UBX_PVT_LAT_Pos + 1] << 16 | 
-                     parser.buffer[UBX_PVT_LAT_Pos + 2] << 8 | 
-                     parser.buffer[UBX_PVT_LAT_Pos + 3];
-    data->longitude = parser.buffer[UBX_PVT_LON_Pos] << 24 | 
-                      parser.buffer[UBX_PVT_LON_Pos + 1] << 16 | 
-                      parser.buffer[UBX_PVT_LON_Pos + 2] << 8 | 
-                      parser.buffer[UBX_PVT_LON_Pos + 3];
-    data->speed = parser.buffer[UBX_PVT_SPD_Pos] << 24 |
-                  parser.buffer[UBX_PVT_SPD_Pos + 1] << 16 |
-                  parser.buffer[UBX_PVT_SPD_Pos + 2] << 8 |
-                  parser.buffer[UBX_PVT_SPD_Pos + 3];
+    // Data is sent in signed little-endian 32-bit integer, two's complement
+    data->latitude = parser.buffer[UBX_PVT_LAT_Pos + 3] << 24 |
+                     parser.buffer[UBX_PVT_LAT_Pos + 2] << 16 |
+                     parser.buffer[UBX_PVT_LAT_Pos + 1] << 8 |
+                     parser.buffer[UBX_PVT_LAT_Pos];
+    data->longitude = parser.buffer[UBX_PVT_LON_Pos + 3] << 24 |
+                      parser.buffer[UBX_PVT_LON_Pos + 2] << 16 |
+                      parser.buffer[UBX_PVT_LON_Pos + 1] << 8 |
+                      parser.buffer[UBX_PVT_LON_Pos];
+    data->speed = parser.buffer[UBX_PVT_SPD_Pos + 3] << 24 |
+                  parser.buffer[UBX_PVT_SPD_Pos + 2] << 16 |
+                  parser.buffer[UBX_PVT_SPD_Pos + 1] << 8 |
+                  parser.buffer[UBX_PVT_SPD_Pos];
+    
+    return GPS_OK;
 }
 
 GPS_Status I2C_Send_UBX_CFG(I2C_TypeDef* I2C, uint8_t dev, uint8_t* msg, size_t msg_len) {
@@ -110,7 +124,12 @@ GPS_Status I2C_Send_UBX_CFG(I2C_TypeDef* I2C, uint8_t dev, uint8_t* msg, size_t 
     I2C_Write(I2C, dev, msg, msg_len);
     
     while (len == 0) {
-        getAvailableBytes(I2C, dev, &len);
+        len = getAvailableBytes(I2C, dev);
+    }
+
+    // Check for Max Length
+    if (len > sizeof(parser.buffer)) {
+        len = sizeof(parser.buffer);
     }
 
     // Check for UBX-ACK-ACK

@@ -29,7 +29,7 @@
 #define UBX_PVT_LAT_Pos                 (0x1C + UBX_PAYLOAD_START)
 #define UBX_PVT_SPD_Pos                 (0x3C + UBX_PAYLOAD_START)
 
-#define RETRY_COUNT                     10
+#define RETRY_COUNT                     5
 
 /* Structs and Enums --------------------------------------------------------*/
 typedef struct {
@@ -44,7 +44,7 @@ typedef struct {
 } UBX_Message;
 
 typedef struct {
-    uint8_t buffer[128];
+    uint8_t buffer[256];
     size_t index;
 } UBX_Parser;
 
@@ -84,13 +84,13 @@ static GPS_Status checkACK(uint8_t* msg, size_t msg_len, uint8_t class, uint8_t 
 static GPS_Status calcChecksum(uint8_t* msg, size_t msg_len, uint8_t* CK_A, uint8_t* CK_B);
 
 /**
- * @brief Static Function to convert Big Endian to Little Endian
+ * @brief Static Function to get available bytes on I2C line
  * 
- * @param data [uint8_t*] Data to convert
- * @param len [size_t] Length of Data
- * @return GPS_Status 
+ * @param I2C [I2C_TypeDef*] Peripheral to use
+ * @param dev [uint8_t] Address of device [7-bit]
+ * @param len [uint16_t*] Pointer to length of available bytes
  */
-static GPS_Status littleEndian(uint8_t* data, size_t len);
+uint16_t getAvailableBytes(I2C_TypeDef* I2C, uint8_t dev);
 
 /* Function Prototypes ------------------------------------------------------*/
 

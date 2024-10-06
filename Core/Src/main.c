@@ -25,9 +25,9 @@ void main() {
   GPS_Status GPS = GPS_Init();
 
   // Create FreeRTOS Tasks
-  Task_Status &= xTaskCreate(Status_LED, "Status_Task", 128, NULL, 1, NULL);
-  Task_Status &= xTaskCreate(CAN_Task, "CAN_Task", 128, NULL, 1, NULL);
-  Task_Status &= xTaskCreate(GPS_Task, "GPS_Task", 128, NULL, 1, NULL);
+  Task_Status &= xTaskCreate(Status_LED, "Status_Task", 64, NULL, 2, NULL);
+  Task_Status &= xTaskCreate(CAN_Task, "CAN_Task", 128, NULL, 2, NULL);
+  Task_Status &= xTaskCreate(GPS_Task, "GPS_Task", 512, NULL, 1, NULL);
 
   if (Task_Status != pdPASS || GPS != GPS_OK) {
     Error_Handler();
@@ -40,7 +40,7 @@ void main() {
 
 void Status_LED() {
   while(1) {
-    osDelay(100);
+    osDelay(1000);
     Toggle_Pin(GPIOC, STATUS_LED_PIN);
   }
 }
@@ -70,10 +70,11 @@ void GPS_Task() {
   volatile GPS_Data data;
 
   while(1) {
-    Get_Position(&data);
-    telemetry.latGPS = data.latitude;
-    telemetry.longGPS = data.longitude;
-    telemetry.Speed = data.speed;
+    if (Get_Position(&data) == GPS_OK) {
+      telemetry.latGPS = data.latitude;
+      telemetry.longGPS = data.longitude;
+      telemetry.Speed = data.speed;
+    }
     osDelay(40); // 25Hz rate = 40ms period
   }
 }
