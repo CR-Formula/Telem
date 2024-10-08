@@ -44,7 +44,7 @@ typedef struct {
 } UBX_Message;
 
 typedef struct {
-    uint8_t buffer[256];
+    uint8_t buffer[276]; // Largest UBX Packet Size
     size_t index;
 } UBX_Parser;
 
