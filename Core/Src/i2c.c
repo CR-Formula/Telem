@@ -108,7 +108,9 @@ uint8_t I2C_Read_Reg(I2C_TypeDef* I2C, uint8_t dev, uint8_t reg) {
     // Send address
     I2C->DR = (dev << 1) & 0xFE; // Send address with write bit
     while (!(I2C->SR1 & I2C_SR1_ADDR)); // Wait for address to be sent
-    (void) I2C->SR2; // Clear address flag by reading SR1 and SR2
+    uint32_t tempRead = I2C->SR1;
+    tempRead = I2C->SR2; // Clear address flag by reading SR1 and SR2
+    (void) tempRead;
 
     // Send register
     I2C->DR = reg;
@@ -119,14 +121,16 @@ uint8_t I2C_Read_Reg(I2C_TypeDef* I2C, uint8_t dev, uint8_t reg) {
     // Send address
     I2C->DR = (dev << 1) | 0x01; // Send address with read bit
     while (!(I2C->SR1 & I2C_SR1_ADDR)); // Wait for address to be sent
-    (void) I2C->SR2; // Clear address flag by reading SR1 and SR2
-
-    // Read data
-    I2C->CR1 &= ~I2C_CR1_ACK; // Disable ACK for last Byte
-    while (!(I2C->SR1 & I2C_SR1_RXNE)); // Wait for data to be received
-    data = (uint8_t)I2C->DR;
+    I2C->CR1 &= ~I2C_CR1_ACK; // Disable ACK
+    tempRead = I2C->SR1;
+    tempRead = I2C->SR2; // Clear address flag by reading SR1 and SR2
+    (void) tempRead;
 
     __Stop(I2C);
+
+    // Read data
+    while (!(I2C->SR1 & I2C_SR1_RXNE)); // Wait for data to be received
+    data = (uint8_t)I2C->DR;
 
     return data;
 }
@@ -138,7 +142,9 @@ I2C_Status I2C_Read(I2C_TypeDef* I2C, uint8_t dev, uint8_t reg, uint8_t* data, s
     // Send address
     I2C->DR = (dev << 1) & 0xFE; // Send address with write bit
     while (!(I2C->SR1 & I2C_SR1_ADDR)); // Wait for address to be sent
-    (void) I2C->SR2; // Clear address flag by reading SR1 and SR2
+    uint32_t tempRead = I2C->SR1;
+    tempRead = I2C->SR2; // Clear address flag by reading SR1 and SR2
+    (void) tempRead;
 
     // Send register
     I2C->DR = reg;
@@ -149,20 +155,30 @@ I2C_Status I2C_Read(I2C_TypeDef* I2C, uint8_t dev, uint8_t reg, uint8_t* data, s
     // Send address
     I2C->DR = (dev << 1) | 0x01; // Send address with read bit
     while (!(I2C->SR1 & I2C_SR1_ADDR)); // Wait for address to be sent
-    (void) I2C->SR2; // Clear address flag by reading SR1 and SR2
+    tempRead = I2C->SR1;
+    tempRead = I2C->SR2; // Clear address flag by reading SR1 and SR2
+    (void) tempRead;
+    
+    // TODO: Implement Size check for len < 3 to handle NACK
 
-    // Read data
-    for (size_t i = 0; i < len-1; i++) {
+    // Read data up to third to last byte
+    size_t i;
+    for (i = 0; i < len-2; i++) {
         while (!(I2C->SR1 & I2C_SR1_RXNE)); // Wait for data to be received
         data[i] = (uint8_t)I2C->DR;
+        I2C->CR1 |= I2C_CR1_ACK; // Set ACK
     }
 
-    // Read last byte
-    I2C->CR1 &= ~I2C_CR1_ACK; // Disable ACK for last Byte
+    // Read second to last byte
     while (!(I2C->SR1 & I2C_SR1_RXNE)); // Wait for data to be received
-    data[len-1] = (uint8_t)I2C->DR;
+    data[i++] = (uint8_t)I2C->DR; // Read Data
+    I2C->CR1 &= ~I2C_CR1_ACK; // Disable ACK for last Byte
 
     __Stop(I2C);
+
+    // Read last byte
+    while (!(I2C->SR1 & I2C_SR1_RXNE)); // Wait for data to be received
+    data[i++] = (uint8_t)I2C->DR;
 
     return I2C_OK;
 }

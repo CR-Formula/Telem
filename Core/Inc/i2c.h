@@ -42,6 +42,7 @@ uint8_t I2C_Read_Reg(I2C_TypeDef* I2C, uint8_t dev, uint8_t reg);
 
 /**
  * @brief Read data from the I2C Line
+ * @note Used to read at least 3 bytes
  * 
  * @param I2C [I2C_TypeDef*] Peripheral to use
  * @param dev [uint8_t] Address of device [7-bit]

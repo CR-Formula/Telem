@@ -15,6 +15,8 @@ Telemetry telemetry;
 void main() {
   uint8_t Task_Status = 1;
 
+  // TODO: Split Init into Peripherals and Devices
+  // TODO: Create Init checks that reruns if failed
   // Initialize Hardware
   Sysclk_168();
   LED_Init();
