@@ -19,11 +19,15 @@ static GPS_Status checkACK(uint8_t* response, size_t msg_len, uint8_t class, uin
     }
 }
 
-static GPS_Status calcChecksum(uint8_t* msg, size_t msg_len, uint8_t* CK_A, uint8_t* CK_B) {
-    for (size_t i = 0; i < msg_len; i++) {
-        *CK_A += msg[i + UBX_PAYLOAD_START];
-        *CK_B += *CK_A;
+static GPS_Status calcChecksum(uint8_t* msg, uint8_t msg_len, uint8_t *CK_A, uint8_t *CK_B) {
+    uint8_t ck_a = 0;
+    uint8_t ck_b = 0;
+    for (uint8_t i = 0; i < msg_len; i++) {
+        ck_a += msg[i];
+        ck_b += ck_a;
     }
+    *CK_A = ck_a;
+    *CK_B = ck_b;
     return GPS_OK;
 }
 
@@ -44,7 +48,8 @@ uint16_t getAvailableBytes(I2C_TypeDef* I2C, uint8_t dev) {
 
 /* Function Implementation --------------------------------------------------*/
 GPS_Status GPS_Init() {
-    uint8_t* CK_A, CK_B;
+    uint8_t payload_size = 0;
+    size_t msg_size = 0;
     uint8_t ubx_msg[] = {
         0xB5, 0x62, // Sync Chars
         0x06, 0x8A, // Class (CFG), ID (VALSET)
@@ -56,12 +61,11 @@ GPS_Status GPS_Init() {
         0x01, 0x00, 0x21, 0x30, // CFG-RATE-MEAS Key (0x30210001 in little-endian)
         // Value for CFG-RATE-MEAS (40 ms for 25 Hz)
         0x28, 0x00, 0x00, 0x00, // 40 ms (in little-endian)
-        CK_A, CK_B  // Checksum
+        0x17, 0x87  // Checksum
     };
 
-    calcChecksum(ubx_msg, ubx_msg[5], CK_A, CK_B);
-    
-    if (I2C_Send_UBX_CFG(I2C1, M9N_ADDR, ubx_msg, sizeof(ubx_msg)) == GPS_ERROR) {
+    msg_size = sizeof(ubx_msg);
+    if (I2C_Send_UBX_CFG(I2C1, M9N_ADDR, ubx_msg, msg_size) == GPS_ERROR) {
         return GPS_ERROR;
     }
 

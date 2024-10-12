@@ -14,20 +14,24 @@
 #define M9N_MSB_REG                     0xFD
 #define M9N_LSB_REG                     0xFE
 #define M9N_DATA_REG                    0xFF
+
 #define UBX_PREABLE1                    0xB5
 #define UBX_PREABLE2                    0x62
+
 #define UBX_CLASS_Pos                   0x02
 #define UBX_ID_Pos                      0x03
 #define UBX_LEN_Pos                     0x04
-#define UBX_PAYLOAD_START               0x06
+#define UBX_PAYLOAD_Pos                 0x06
+
 #define UBX_ACK_CLASS                   0x06
 #define UBX_ACK_ID                      0x07
+
 #define UBX_PVT_CLASS                   0x01
 #define UBX_PVT_ID                      0x07
 #define UBX_PVT_LEN                     0x92
-#define UBX_PVT_LON_Pos                 (0x18 + UBX_PAYLOAD_START)
-#define UBX_PVT_LAT_Pos                 (0x1C + UBX_PAYLOAD_START)
-#define UBX_PVT_SPD_Pos                 (0x3C + UBX_PAYLOAD_START)
+#define UBX_PVT_LON_Pos                 (0x18 + UBX_PAYLOAD_Pos)
+#define UBX_PVT_LAT_Pos                 (0x1C + UBX_PAYLOAD_Pos)
+#define UBX_PVT_SPD_Pos                 (0x3C + UBX_PAYLOAD_Pos)
 
 #define RETRY_COUNT                     5
 
@@ -81,7 +85,7 @@ static GPS_Status checkACK(uint8_t* msg, size_t msg_len, uint8_t class, uint8_t 
  * @param CK_B [uint8_t*] Pointer to CK_B
  * @return GPS_Status 
  */
-static GPS_Status calcChecksum(uint8_t* msg, size_t msg_len, uint8_t* CK_A, uint8_t* CK_B);
+static GPS_Status calcChecksum(uint8_t* msg, uint8_t msg_len, uint8_t* CK_A, uint8_t* CK_B);
 
 /**
  * @brief Static Function to get available bytes on I2C line
