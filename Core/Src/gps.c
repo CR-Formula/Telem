@@ -53,19 +53,55 @@ GPS_Status GPS_Init() {
     uint8_t ubx_msg[] = {
         0xB5, 0x62, // Sync Chars
         0x06, 0x8A, // Class (CFG), ID (VALSET)
-        0x0C, 0x00, // Length of payload (12 bytes)
+        0x0E, 0x00, // Length of payload (22 bytes)
+        0x00,       // Version (0x00)
+        0x01,       // Layer (0x01 for RAM, or 0x04 for Flash)
+        0x00, 0x00, // Reserved for Transactions
+        // Start of Key/Value pairs
+        // 0x01, 0x00, 0x21, 0x30, // CFG-RATE-MEAS Key (0x30210001 in little-endian)
+        // 0x28, 0x00, 0x00, 0x00, // 40 ms (in little-endian)
+
+        0x02, 0x00, 0x72, 0x10, // CFG-I2COUTPROT-NMEA Key (0x10720002 in little-endian)
+        0x00, // Disable NMEA
+
+        0x2E, 0x00, 0xA3, 0x10, // CFG-HW-ANT_CFG_VOLTCTRL Key (0x10A3002E in little-endian)
+        0x01, // Enable Voltage Control
+
+        0x00, 0x00  // Checksum
+    };
+
+    msg_size = sizeof(ubx_msg);
+
+    // Calculate Checksum
+    uint8_t CK_A = 0;
+    uint8_t CK_B = 0;
+    for (size_t i = 2; i < msg_size - 2; i++) {
+        CK_A += ubx_msg[i];
+        CK_B += CK_A;
+    }
+
+    ubx_msg[msg_size - 2] = CK_A;
+    ubx_msg[msg_size - 1] = CK_B;
+
+    if (I2C_Send_UBX_CFG(I2C1, M9N_ADDR, ubx_msg, msg_size) == GPS_ERROR) {
+        return GPS_ERROR;
+    }
+
+    uint8_t ubx_msg_2[] = {
+        0xB5, 0x62, // Sync Chars
+        0x06, 0x8A, // Class (CFG), ID (VALSET)
+        0x0C, 0x00, // Length of payload (22 bytes)
         0x00,       // Version (0x00)
         0x01,       // Layer (0x01 for RAM, or 0x04 for Flash)
         0x00, 0x00, // Reserved for Transactions
         // Start of Key/Value pairs
         0x01, 0x00, 0x21, 0x30, // CFG-RATE-MEAS Key (0x30210001 in little-endian)
-        // Value for CFG-RATE-MEAS (40 ms for 25 Hz)
         0x28, 0x00, 0x00, 0x00, // 40 ms (in little-endian)
         0x17, 0x87  // Checksum
     };
 
-    msg_size = sizeof(ubx_msg);
-    if (I2C_Send_UBX_CFG(I2C1, M9N_ADDR, ubx_msg, msg_size) == GPS_ERROR) {
+    msg_size = sizeof(ubx_msg_2);
+    if (I2C_Send_UBX_CFG(I2C1, M9N_ADDR, ubx_msg_2, msg_size) == GPS_ERROR) {
         return GPS_ERROR;
     }
 
@@ -74,7 +110,7 @@ GPS_Status GPS_Init() {
 
 GPS_Status Get_Position(GPS_Data* data) {
     volatile uint16_t len = 0;
-    // uint8_t count = 0;
+    uint8_t count = 0;
     uint8_t poll_nav_pvt[] = {
         UBX_PREABLE1, UBX_PREABLE2, // Sync Chars
         0x01, 0x07, // Class (NAV), ID (PVT)
@@ -89,8 +125,12 @@ GPS_Status Get_Position(GPS_Data* data) {
     // Write PVT Poll Request
     I2C_Write(I2C1, M9N_ADDR, poll_nav_pvt, sizeof(poll_nav_pvt));
 
-    while (len == 0) {
+    while (len == 0 && count < RETRY_COUNT) {
         len = getAvailableBytes(I2C1, M9N_ADDR);
+        count++;
+    }
+    if (len == 0 || count == RETRY_COUNT) {
+        return GPS_ERROR;
     }
 
     I2C_Read(I2C1, M9N_ADDR, M9N_DATA_REG, parser.buffer, len);
@@ -134,6 +174,7 @@ GPS_Status I2C_Send_UBX_CFG(I2C_TypeDef* I2C, uint8_t dev, uint8_t* msg, size_t 
     // Check for UBX-ACK-ACK
     I2C_Read(I2C, dev, M9N_DATA_REG, parser.buffer, len);
 
+    // TODO: Check for ACK-ACK as opposed to CLASS and ID
     if (parser.buffer[UBX_ACK_CLASS] == msg[UBX_CLASS_Pos] && 
         parser.buffer[UBX_ACK_ID] == msg[UBX_ID_Pos]) {
         return GPS_OK;

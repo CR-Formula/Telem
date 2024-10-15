@@ -33,7 +33,7 @@
 #define UBX_PVT_LAT_Pos                 (0x1C + UBX_PAYLOAD_Pos)
 #define UBX_PVT_SPD_Pos                 (0x3C + UBX_PAYLOAD_Pos)
 
-#define RETRY_COUNT                     5
+#define RETRY_COUNT                     25
 
 /* Structs and Enums --------------------------------------------------------*/
 typedef struct {
