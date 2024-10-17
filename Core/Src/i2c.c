@@ -65,7 +65,7 @@ I2C_Status I2C1_Init() {
     I2C1->CCR = I2C_CCR_FS | I2C_CCR_DUTY | ccr_value;
 
     // Configure maximum rise time
-    uint32_t trise = ((pclk1 / 3000) + 1); // Fast mode max rise time
+    uint32_t trise = ((pclk1 / 100) + 1); // Fast mode max rise time
     I2C1->TRISE = trise;
 
     // Enable I2C
