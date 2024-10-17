@@ -12,6 +12,17 @@
             "device": "STM32F415",
             "interface": "swd",
             "svdFile": "${workspaceFolder}/STM32F405.svd",
+        },
+        {
+            "name": "Cortex Attach",
+            "cwd": "${workspaceFolder}",
+            "executable": "./build/Telem.elf",
+            "request": "attach",
+            "type": "cortex-debug",
+            "servertype": "stutil",
+            "device": "STM32F415",
+            "interface": "swd",
+            "svdFile": "${workspaceFolder}/STM32F405.svd",
         }
     ]
 }

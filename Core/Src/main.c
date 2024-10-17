@@ -68,9 +68,15 @@ void CAN_Task() {
 }
 
 void GPS_Task() {
+  GPS_Status status;
   volatile GPS_Data data;
   osDelay(500); // Delay for GPS Module to Boot
-  GPS_Init();
+  status = GPS_Init();
+
+  while (status != GPS_OK) {
+    status = GPS_Init();
+    osDelay(1000); // Wait for GPS to recover
+  }
 
   while(1) {
     if (Get_Position(&data) == GPS_OK) {
@@ -79,7 +85,7 @@ void GPS_Task() {
       telemetry.Speed = data.speed;
     }
     else {
-      osDelay(1000); // Wait for GPS to recover
+      osDelay(100); // Wait for GPS to recover
     }
     osDelay(40); // 25Hz rate = 40ms period
   }

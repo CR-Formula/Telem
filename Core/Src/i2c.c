@@ -70,7 +70,6 @@ I2C_Status I2C1_Init() {
 
     // Enable I2C
     I2C1->CR1 |= I2C_CR1_PE;
-    I2C1->CR1 |= I2C_CR1_ACK; // Enable ACK
 
     return I2C_OK;
 }
