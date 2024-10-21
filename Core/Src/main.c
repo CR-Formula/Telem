@@ -15,6 +15,8 @@ Telemetry telemetry;
 void main() {
   uint8_t Task_Status = 1;
 
+  // TODO: Split Init into Peripherals and Devices
+  // TODO: Create Init checks that reruns if failed
   // Initialize Hardware
   Sysclk_168();
   LED_Init();
@@ -24,9 +26,9 @@ void main() {
   CAN_Start();
 
   // Create FreeRTOS Tasks
-  Task_Status &= xTaskCreate(Status_LED, "Status_Task", 128, NULL, 1, NULL);
-  Task_Status &= xTaskCreate(CAN_Task, "CAN_Task", 128, NULL, 1, NULL);
-  Task_Status &= xTaskCreate(GPS_Task, "GPS_Task", 128, NULL, 1, NULL);
+  Task_Status &= xTaskCreate(Status_LED, "Status_Task", 64, NULL, 2, NULL);
+  Task_Status &= xTaskCreate(CAN_Task, "CAN_Task", 128, NULL, 2, NULL);
+  Task_Status &= xTaskCreate(GPS_Task, "GPS_Task", 512, NULL, 1, NULL);
 
   if (Task_Status != pdPASS) {
     Error_Handler();
@@ -39,13 +41,13 @@ void main() {
 
 void Status_LED() {
   while(1) {
-    osDelay(100);
+    osDelay(1000);
     Toggle_Pin(GPIOC, STATUS_LED_PIN);
   }
 }
 
 void CAN_Task() {
-  volatile CAN_Frame tFrame = {
+  CAN_Frame tFrame = {
     .id = 0x123,
     .data = {8, 6, 5, 3, 2, 4, 1, 5},
     .dlc = 8,
@@ -66,12 +68,26 @@ void CAN_Task() {
 }
 
 void GPS_Task() {
-  volatile uint8_t data;
-  volatile uint16_t lat, lon;
+  GPS_Status status;
+  volatile GPS_Data data;
+  osDelay(500); // Delay for GPS Module to Boot
+  status = GPS_Init();
 
-  // TODO: Implement pg 27 of GPS Integration Manual
+  while (status != GPS_OK) {
+    status = GPS_Init();
+    osDelay(1000); // Wait for GPS to recover
+  }
+
   while(1) {
-    osDelay(1000);
+    if (Get_Position(&data) == GPS_OK) {
+      telemetry.latGPS = data.latitude;
+      telemetry.longGPS = data.longitude;
+      telemetry.Speed = data.speed;
+    }
+    else {
+      osDelay(100); // Wait for GPS to recover
+    }
+    osDelay(40); // 25Hz rate = 40ms period
   }
 }
 
