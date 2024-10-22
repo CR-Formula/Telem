@@ -10,7 +10,7 @@
 
 /**
  * @brief Initialize SPI2
- * @note CPOL = 1, CPHA = 0, MSB First, 8-bit Data Frame
+ * @note CPOL = 0, CPHA = 0, MSB First, 8-bit Data Frame
  */
 void SPI2_Init();
 
@@ -35,6 +35,16 @@ uint8_t SPI_Write(SPI_TypeDef* SPI, uint8_t data);
  * @param CS [uint8_t] Chip Select Pin
  */
 void SPI_Transmit_Frame(SPI_TypeDef* SPI, uint8_t *buf, uint16_t size, uint8_t CS);
+
+/**
+ * @brief Write to a device register over SPI
+ * 
+ * @param SPI [SPI_TypeDef*] SPI Peripheral to use
+ * @param reg [uint8_t] Register to write to
+ * @param data [uint8_t] Data to write
+ * @param CS [uint8_t] Chip Select Pin
+ */
+void SPI_Write_Register(SPI_TypeDef* SPI, uint8_t reg, uint8_t data, uint8_t CS);
 
 /**
  * @brief Read a register on a SPI device
