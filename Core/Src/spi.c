@@ -51,15 +51,12 @@ void SPI_Transmit_Frame(SPI_TypeDef* SPI, uint8_t *buf, uint16_t size, uint8_t C
   Set_Pin(GPIOB, CS); // Set pin B12 High for CS
 }
 
-void SPI_Write_Register(SPI_TypeDef* SPI, uint8_t reg, uint8_t data, uint8_t CS) {
+void SPI_Write_Register(SPI_TypeDef* SPI, uint8_t reg, uint8_t* data, uint8_t len, uint8_t CS) {
   Clear_Pin(GPIOB, CS); // Clear pin B12 Low for CS
-  while (!(SPI->SR & SPI_SR_TXE)); // Wait until TXE is set
-  SPI->DR = reg; // Write data to Data Register
-  while (!(SPI->SR & SPI_SR_RXNE)); // Wait until RXNE is set
-  uint8_t Read = SPI->DR; // Read DR to clear RXNE
-  SPI->DR = data; // Write data to Data Register
-  while (!(SPI->SR & SPI_SR_RXNE)); // Wait until RXNE is set
-  Read = SPI->DR; // Read DR to clear RXNE
+  SPI_Write(SPI, reg); // Write register address
+  for (size_t i = 0; i < len; i++) {
+    SPI_Write(SPI, data[i]); // Write data
+  }
   Set_Pin(GPIOB, CS); // Set pin B12 High for CS
 }
 

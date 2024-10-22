@@ -40,6 +40,8 @@ extern "C" {
 #include "gpio.h"
 #include "can.h"
 #include "gps.h"
+#include "spi.h"
+#include "lora.h"
 
 /* Macros  ------------------------------------------------------------------*/
 #define STATUS_LED_PIN          13
@@ -79,7 +81,6 @@ void Error_Handler(void);
 /**
  * @brief Thread for blinking the status led
  * 
- * @param argument 
  */
 void Status_LED();
 
@@ -87,7 +88,6 @@ void Status_LED();
  * @brief Thread for handling CAN communication
  * @note TODO: Implement CAN Task
  * 
- * @param argument 
  */
 void CAN_Task();
 
@@ -95,9 +95,14 @@ void CAN_Task();
  * @brief Thread for handling GPS communication
  * @note TODO: Implement GPS Task
  * 
- * @param argument 
  */
 void GPS_Task();
+
+/**
+ * @brief Thread for send the Telemetry Struct over LoRa
+ * 
+ */
+void Lora_Task();
 
 /**
  * @brief Main Function to start FreeRTOS and initialize peripherals

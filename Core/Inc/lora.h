@@ -10,8 +10,14 @@
 #include "spi.h"
 #include "rfm95_reg.h"
 
+/* Macros -------------------------------------------------------------------*/
 #define LORA_FREQ 915000000 // 915MHz
 
+/* Structs and Enums --------------------------------------------------------*/
+typedef enum {
+    LORA_OK,
+    LORA_ERROR,
+} Lora_Status;
 
 /* Function Prototypes ------------------------------------------------------*/
 
@@ -20,15 +26,15 @@
  * @note default 915 MHz, 20 dBm, 500 kHz Bandwidth, 4/5 Coding Rate
  * 
  */
-void Lora_Init();
+Lora_Status Lora_Init();
 
 /**
- * @brief Send data over LoRa
+ * @brief Send data buffer over LoRa
  * 
  * @param data [uint8_t*] Data buffer to send
  * @param len [uint8_t] Length of data
  */
-void Lora_Send(uint8_t* data, uint8_t len);
+Lora_Status Lora_Send(uint8_t* data, uint8_t len);
 
 /**
  * @brief Read data from LoRa
@@ -43,12 +49,12 @@ void Lora_Receive(uint8_t* data, uint8_t len);
  * 
  * @param sf [uint8_t] Spreading Factor from 1-12
  */
-void Lora_Set_SF(uint8_t sf);
+Lora_Status Lora_Set_SF(uint8_t sf);
 
 /**
  * @brief Set the Bandwidth for LoRa
  * 
  * @param bw [uint8_t] Bandwidth in kHz
  */
-void Lora_Set_BW(uint8_t bw);
+Lora_Status Lora_Set_BW(uint8_t bw);
 

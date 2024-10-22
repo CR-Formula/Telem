@@ -24,11 +24,13 @@ void main() {
   CAN1_Init();
   CAN_Filters_Init();
   CAN_Start();
+  SPI2_Init();
 
   // Create FreeRTOS Tasks
   Task_Status &= xTaskCreate(Status_LED, "Status_Task", 64, NULL, 2, NULL);
   Task_Status &= xTaskCreate(CAN_Task, "CAN_Task", 128, NULL, 2, NULL);
   Task_Status &= xTaskCreate(GPS_Task, "GPS_Task", 512, NULL, 1, NULL);
+  Task_Status &= xTaskCreate(Lora_Task, "Lora_Task", 128, NULL, 2, NULL);
 
   if (Task_Status != pdPASS) {
     Error_Handler();
@@ -88,6 +90,19 @@ void GPS_Task() {
       osDelay(100); // Wait for GPS to recover
     }
     osDelay(40); // 25Hz rate = 40ms period
+  }
+}
+
+void Lora_Task() {
+  Lora_Status status;
+  status = Lora_Init();
+  while (status != LORA_OK) {
+    status = Lora_Init();
+    osDelay(1000); // Wait for LoRa to recover
+  }
+
+  while(1) {
+    // TODO: Implement LoRa Task
   }
 }
 
