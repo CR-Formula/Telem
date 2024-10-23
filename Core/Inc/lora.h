@@ -11,7 +11,8 @@
 #include "rfm95_reg.h"
 
 /* Macros -------------------------------------------------------------------*/
-#define LORA_FREQ 915000000 // 915MHz
+#define LORA_FREQ           915 // MHz
+#define LORA_CS             12 // PB12 for CS
 
 /* Structs and Enums --------------------------------------------------------*/
 typedef enum {

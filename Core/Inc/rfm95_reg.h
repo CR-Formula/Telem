@@ -103,6 +103,8 @@
 #define RegPaConfig_PaSelect_Msk                        (0x1u << RegPaConfig_PaSelect_Pos)
 #define RegPaConfig_PaSelect                            RegPaConfig_PaSelect_Msk
 
+#define RegPaConfig_20dBm                               0xFF
+
 /***********************  RegPaRamp  ***********************/
 #define RegPaRamp_PaRamp_Pos                            (0u)
 #define RegPaRamp_PaRamp_Msk                            (0xFu << RegPaRamp_PaRamp_Pos)

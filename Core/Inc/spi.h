@@ -40,13 +40,14 @@ void SPI_Transmit_Frame(SPI_TypeDef* SPI, uint8_t *buf, uint16_t size, uint8_t C
 
 /**
  * @brief Write to a device register over SPI
+ * @note Assumes 8-bit address and data
  * 
  * @param SPI [SPI_TypeDef*] SPI Peripheral to use
  * @param reg [uint8_t] Register to write to
  * @param data [uint8_t] Data to write
  * @param CS [uint8_t] Chip Select Pin
  */
-void SPI_Write_Register(SPI_TypeDef* SPI, uint8_t reg, uint8_t* data, uint8_t len, uint8_t CS);
+void SPI_Write_Register(SPI_TypeDef* SPI, uint8_t reg, uint8_t data, uint8_t CS);
 
 /**
  * @brief Read a register on a SPI device

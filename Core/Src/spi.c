@@ -51,12 +51,10 @@ void SPI_Transmit_Frame(SPI_TypeDef* SPI, uint8_t *buf, uint16_t size, uint8_t C
   Set_Pin(GPIOB, CS); // Set pin B12 High for CS
 }
 
-void SPI_Write_Register(SPI_TypeDef* SPI, uint8_t reg, uint8_t* data, uint8_t len, uint8_t CS) {
+void SPI_Write_Register(SPI_TypeDef* SPI, uint8_t reg, uint8_t data, uint8_t CS) {
   Clear_Pin(GPIOB, CS); // Clear pin B12 Low for CS
   SPI_Write(SPI, reg); // Write register address
-  for (size_t i = 0; i < len; i++) {
-    SPI_Write(SPI, data[i]); // Write data
-  }
+  SPI_Write(SPI, data); // Write data
   Set_Pin(GPIOB, CS); // Set pin B12 High for CS
 }
 
