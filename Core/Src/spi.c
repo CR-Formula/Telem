@@ -58,7 +58,7 @@ void SPI_Write_Register(SPI_TypeDef* SPI, uint8_t reg, uint8_t data, uint8_t CS)
   Set_Pin(GPIOB, CS); // Set pin B12 High for CS
 }
 
-uint8_t Read_Register(SPI_TypeDef* SPI, uint8_t reg, uint8_t CS) {
+uint8_t SPI_Read_Register(SPI_TypeDef* SPI, uint8_t reg, uint8_t CS) {
   Clear_Pin(GPIOB, CS); // Clear pin B12 Low for CS
   while (!(SPI->SR & SPI_SR_TXE)); // Wait until TXE is set
   // TODO: Need to send read command

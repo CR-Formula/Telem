@@ -10,6 +10,11 @@
 #include <stdint.h>
 #include <stddef.h>
 
+/* Macros -------------------------------------------------------------------*/
+/* Structs and Enums --------------------------------------------------------*/
+
+/* Function Prototypes ------------------------------------------------------*/
+
 /**
  * @brief Initialize SPI2
  * @note CPOL = 0, CPHA = 0, MSB First, 8-bit Data Frame
@@ -59,4 +64,4 @@ void SPI_Write_Register(SPI_TypeDef* SPI, uint8_t reg, uint8_t data, uint8_t CS)
  * @param CS [uint8_t] Chip Select Pin
  * @return uint8_t Register Data
  */
-uint8_t Read_Register(SPI_TypeDef* SPI, uint8_t reg, uint8_t CS);
+uint8_t SPI_Read_Register(SPI_TypeDef* SPI, uint8_t reg, uint8_t CS);

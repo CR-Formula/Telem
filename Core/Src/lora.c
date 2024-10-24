@@ -10,8 +10,8 @@
 
 /* Function Implementation --------------------------------------------------*/
 Lora_Status Lora_Init() {
-    uint8_t regData = 0x0;
-    // Set RFM95W to LoRa Modeardu
+    // Set RFM95W to LoRa Mode
+    uint8_t regData = SPI_Read_Register(SPI2, RegOpMode, LORA_CS);
     regData |= RegOpMode_LongRangeMode; 
     SPI_Write_Register(SPI2, RegOpMode, regData, LORA_CS);
     
@@ -29,12 +29,16 @@ Lora_Status Lora_Init() {
 
     // Set Power to 20 dBm
     SPI_Write_Register(SPI2, RegPaConfig, RegPaConfig_20dBm, LORA_CS);
-    // Set Bandwidth to 500 kHz
-    SPI_Write_Register(SPI2, RegModulationCfg, 0x72, LORA_CS);
-    // Set Coding Rate to 4/5
-    SPI_Write_Register(SPI2, RegModemStat, 0x72, LORA_CS);
-    // Set Spreading Factor to 12
-    SPI_Write_Register(SPI2, RegModemStat, 0x72, LORA_CS);
+
+    // Set Bandwidth to 500 kHz and Coding Rate to 4/5
+    regData = SPI_Read_Register(SPI2, RegModemConfig1, LORA_CS);
+    regData |= (0x9 << RegModemConfig1_Bw_Pos) | (0x1 << RegModemConfig1_CodingRate_Pos);
+    SPI_Write_Register(SPI2, RegModemConfig1, regData, LORA_CS);
+
+    // Set Spreading Factor to 6
+    regData = SPI_Read_Register(SPI2, RegModemConfig2, LORA_CS);
+    regData |= (0x6 << RegModemConfig2_SpreadingFactor_Pos);
+    SPI_Write_Register(SPI2, RegModemConfig1, regData, LORA_CS);
 
     return LORA_OK;
 }
