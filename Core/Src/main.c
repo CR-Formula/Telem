@@ -94,7 +94,7 @@ void GPS_Task() {
 }
 
 void Lora_Task() {
-  Lora_Status status;
+  LoRa_Status status;
   status = Lora_Init();
   while (status != LORA_OK) {
     status = Lora_Init();
@@ -103,6 +103,7 @@ void Lora_Task() {
 
   while(1) {
     // TODO: Implement LoRa Task
+    // osDelay(1000);
   }
 }
 

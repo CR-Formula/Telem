@@ -18,7 +18,7 @@
 typedef enum {
     LORA_OK,
     LORA_ERROR,
-} Lora_Status;
+} LoRa_Status;
 
 /* Function Prototypes ------------------------------------------------------*/
 
@@ -27,7 +27,7 @@ typedef enum {
  * @note default 915 MHz, 20 dBm, 500 kHz Bandwidth, 4/5 Coding Rate
  * 
  */
-Lora_Status Lora_Init();
+LoRa_Status Lora_Init();
 
 /**
  * @brief Send data buffer over LoRa
@@ -35,7 +35,7 @@ Lora_Status Lora_Init();
  * @param data [uint8_t*] Data buffer to send
  * @param len [uint8_t] Length of data
  */
-Lora_Status Lora_Send(uint8_t* data, uint8_t len);
+LoRa_Status Lora_Send(uint8_t* data, uint8_t len);
 
 /**
  * @brief Read data from LoRa
@@ -50,12 +50,12 @@ void Lora_Receive(uint8_t* data, uint8_t len);
  * 
  * @param sf [uint8_t] Spreading Factor from 1-12
  */
-Lora_Status Lora_Set_SF(uint8_t sf);
+LoRa_Status Lora_Set_SF(uint8_t sf);
 
 /**
  * @brief Set the Bandwidth for LoRa
  * 
  * @param bw [uint8_t] Bandwidth in kHz
  */
-Lora_Status Lora_Set_BW(uint8_t bw);
+LoRa_Status Lora_Set_BW(uint8_t bw);
 

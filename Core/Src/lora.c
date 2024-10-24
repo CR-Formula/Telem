@@ -9,7 +9,7 @@
 #include "lora.h"
 
 /* Function Implementation --------------------------------------------------*/
-Lora_Status Lora_Init() {
+LoRa_Status Lora_Init() {
     // Set RFM95W to LoRa Mode
     uint8_t regData = SPI_Read_Register(SPI2, RegOpMode, LORA_CS);
     regData |= RegOpMode_LongRangeMode; 
@@ -17,14 +17,11 @@ Lora_Status Lora_Init() {
     
     // Calculate and set Carrier Frequency
     uint32_t F = (LORA_FREQ * 524288) >> 5;
-    // MSB
-    regData = (F >> 16);
+    regData = (F >> 16); // MSB
     SPI_Write_Register(SPI2, RegFrfMsb, regData, LORA_CS);
-    // MID
-    regData = (F >> 8);
+    regData = (F >> 8); // MID
     SPI_Write_Register(SPI2, RegFrfMid, regData, LORA_CS);
-    // LSB
-    regData = (F >> 0);
+    regData = (F >> 0); // LSB
     SPI_Write_Register(SPI2, RegFrfLsb, regData, LORA_CS);
 
     // Set Power to 20 dBm
