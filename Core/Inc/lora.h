@@ -13,6 +13,7 @@
 /* Macros -------------------------------------------------------------------*/
 #define LORA_FREQ           915 // MHz
 #define LORA_CS             12 // PB12 for CS
+#define LORA_WRITE          0x80 // Mask for write command
 
 /* Structs and Enums --------------------------------------------------------*/
 typedef enum {
