@@ -12,7 +12,6 @@
 
 /* Macros -------------------------------------------------------------------*/
 /* Structs and Enums --------------------------------------------------------*/
-
 /* Function Prototypes ------------------------------------------------------*/
 
 /**
@@ -22,46 +21,11 @@
 void SPI2_Init();
 
 /**
- * @brief Send a byte over SPI
+ * @brief Transmit a byte over SPI
  * @note Does not handle CS pin
  * 
  * @param SPI [SPI_TypeDef*] SPI Peripheral to use
  * @param data [uint8_t] Data to write
- * @param CS [uint8_t] Chip Select Pin
  * @return [uint8_t] Data read from slave shift register
  */
-uint8_t SPI_Write(SPI_TypeDef* SPI, uint8_t data);
-
-/**
- * @brief Write a register on a SPI device
- * @note Designed for RFM95W LoRa Module
- * 
- * @param SPI [SPI_TypeDef*] SPI Peripheral to use
- * @param reg [uint8_t] Register Address
- * @param data [uint8_t] Data to write
- * @param CS [uint8_t] Chip Select Pin
- */
-void SPI_Transmit_Frame(SPI_TypeDef* SPI, uint8_t *buf, uint16_t size, uint8_t CS);
-
-/**
- * @brief Write to a device register over SPI
- * @note Assumes 8-bit address and data
- * 
- * @param SPI [SPI_TypeDef*] SPI Peripheral to use
- * @param reg [uint8_t] Register to write to
- * @param data [uint8_t] Data to write
- * @param CS [uint8_t] Chip Select Pin
- */
-void SPI_Write_Register(SPI_TypeDef* SPI, uint8_t reg, uint8_t data, uint8_t CS);
-
-/**
- * @brief Read a register on a SPI device
- * @note Designed for RFM95W LoRa Module
- * TODO: Need to set up read command
- * 
- * @param SPI [SPI_TypeDef*] SPI Peripheral to use
- * @param reg [uint8_t] Register Address
- * @param CS [uint8_t] Chip Select Pin
- * @return uint8_t Register Data
- */
-uint8_t SPI_Read_Register(SPI_TypeDef* SPI, uint8_t reg, uint8_t CS);
+uint8_t SPI_Transmit(SPI_TypeDef* SPI, uint8_t data);

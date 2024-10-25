@@ -23,48 +23,19 @@ void SPI2_Init() {
   GPIOB->AFR[1] |= (0x5 << GPIO_AFRH_AFSEL13_Pos) | (0x5 << GPIO_AFRH_AFSEL14_Pos) 
                 | (0x5 << GPIO_AFRH_AFSEL15_Pos); // Set PB13, PB14, and PB15 to AF5 (SPI2)
 
-  SPI2->CR1 = (0x4 << SPI_CR1_BR_Pos); // Set Baud Rate to fPCLK/32
+  // Set Baud Rate to fPCLK/32, SSM to Software, SSI to High
+  SPI2->CR1 = (0x4 << SPI_CR1_BR_Pos) | SPI_CR1_SSM | SPI_CR1_SSI; // Set Baud Rate to fPCLK/32
 
-  // Set SSM to software, SSI to high
-  SPI2->CR1 |= SPI_CR1_SSM | SPI_CR1_SSI;
-
-  // Set CPHA = 0, MSB First, Frame Format = Motorola, 8-bit Data Frame
+  // Set CPHA = CPOL = 0, MSB First, Frame Format = Motorola, 8-bit Data Frame
   SPI2->CR1 &= ~SPI_CR1_CPHA & ~SPI_CR1_LSBFIRST & ~SPI_CR1_CPOL
             & ~SPI_CR2_FRF & ~SPI_CR1_DFF;
   
   SPI2->CR1 |= SPI_CR1_MSTR | SPI_CR1_SPE; // Set Master and Enable
 }
 
-uint8_t SPI_Write(SPI_TypeDef* SPI, uint8_t data) {
+uint8_t SPI_Transmit(SPI_TypeDef* SPI, uint8_t data) {
   while (!(SPI->SR & SPI_SR_TXE)); // Wait until TXE is set
   SPI->DR = data; // Write data to Data Register
   while (!(SPI->SR & SPI_SR_RXNE)); // Wait until RXNE is set
-  uint8_t Read = SPI->DR; // Read DR to clear RXNE
-  return Read;
-}
-
-void SPI_Transmit_Frame(SPI_TypeDef* SPI, uint8_t *buf, uint16_t size, uint8_t CS) {
-  Clear_Pin(GPIOB, CS); // Clear pin B12 Low for CS
-  for (int i = 0; i < size; i++) {
-    SPI_Write(SPI, buf[i]);
-  }
-  Set_Pin(GPIOB, CS); // Set pin B12 High for CS
-}
-
-void SPI_Write_Register(SPI_TypeDef* SPI, uint8_t reg, uint8_t data, uint8_t CS) {
-  Clear_Pin(GPIOB, CS); // Clear pin B12 Low for CS
-  SPI_Write(SPI, reg); // Write register address
-  SPI_Write(SPI, data); // Write data
-  Set_Pin(GPIOB, CS); // Set pin B12 High for CS
-}
-
-uint8_t SPI_Read_Register(SPI_TypeDef* SPI, uint8_t reg, uint8_t CS) {
-  Clear_Pin(GPIOB, CS); // Clear pin B12 Low for CS
-  while (!(SPI->SR & SPI_SR_TXE)); // Wait until TXE is set
-  // TODO: Need to send read command
-  SPI->DR = reg; // Write data to Data Register
-  while (!(SPI->SR & SPI_SR_RXNE)); // Wait until RXNE is set
-  uint8_t Read = SPI->DR; // Read DR to clear RXNE
-  Set_Pin(GPIOB, CS); // Set pin B12 High for CS
-  return Read;
+  return SPI->DR; // Read DR to clear RXNE
 }

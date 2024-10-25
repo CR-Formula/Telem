@@ -9,9 +9,12 @@
 #include "stm32f415xx.h"
 #include "spi.h"
 #include "rfm95_reg.h"
+#include "gpio.h"
 
 /* Macros -------------------------------------------------------------------*/
 #define LORA_FREQ           915 // MHz
+#define LORA_SPI            (SPI_TypeDef*)SPI2
+#define LORA_GPIO           (GPIO_TypeDef*)GPIOB
 #define LORA_CS             12 // PB12 for CS
 #define LORA_WRITE          0x80 // Mask for write command
 
