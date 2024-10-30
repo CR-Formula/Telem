@@ -38,9 +38,25 @@ void SPI2_Init() {
   SPI2->CR1 |= SPI_CR1_MSTR | SPI_CR1_SPE; // Set Master and Enable
 }
 
-uint8_t SPI_Transmit(SPI_TypeDef* SPI, uint8_t data) {
+SPI_Status SPI_Write_Reg(SPI_TypeDef* SPI, uint8_t reg, uint8_t data) {
+  while (!(SPI->SR & SPI_SR_TXE)); // Wait until TX empty
+  SPI->DR = reg;
+  // while (!(SPI->SR & SPI_SR_RXNE)); // Wait until RXNE is set
+  // (void)SPI->DR; // Read DR to clear RXNE
+  while(!(SPI->SR & SPI_SR_TXE)); 
+  SPI->DR = data;
+  while (SPI->SR & SPI_SR_BSY); // Wait until SPI is not busy
+}
+
+uint8_t SPI_Read_Reg(SPI_TypeDef* SPI, uint8_t reg) {
   while (!(SPI->SR & SPI_SR_TXE)); // Wait until TXE is set
-  SPI->DR = data; // Write data to Data Register
+  SPI->DR = reg; // Write data to Data Register
   while (!(SPI->SR & SPI_SR_RXNE)); // Wait until RXNE is set
-  return SPI->DR; // Read DR to clear RXNE
+  uint8_t data = SPI->DR; // Read DR to clear RXNE
+  while(!(SPI->SR & SPI_SR_TXE)); // Wait until TXE is set
+  SPI->DR = 0; // Write dummy data to read
+  while (!(SPI->SR & SPI_SR_RXNE)); // Wait until RXNE is set
+  data = SPI->DR; // Read DR to clear RXNE
+  while (SPI->SR & SPI_SR_BSY); // Wait until SPI is not busy
+  return data;
 }

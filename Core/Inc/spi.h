@@ -12,6 +12,11 @@
 
 /* Macros -------------------------------------------------------------------*/
 /* Structs and Enums --------------------------------------------------------*/
+typedef enum {
+    SPI_ERROR,
+    SPI_OK,
+} SPI_Status;
+
 /* Function Prototypes ------------------------------------------------------*/
 
 /**
@@ -22,10 +27,23 @@ void SPI2_Init();
 
 /**
  * @brief Transmit a byte over SPI
- * @note Does not handle CS pin
+ * @note Must Toggle CS pin manually
+ * @note Assumes 8-bit registers
  * 
  * @param SPI [SPI_TypeDef*] SPI Peripheral to use
+ * @param reg [uint8_t] Register Address
  * @param data [uint8_t] Data to write
- * @return [uint8_t] Data read from slave shift register
+ * @return SPI_Status
  */
-uint8_t SPI_Transmit(SPI_TypeDef* SPI, uint8_t data);
+SPI_Status SPI_Write_Reg(SPI_TypeDef* SPI, uint8_t reg, uint8_t data);
+
+/**
+ * @brief Read Data over SPI
+ * @note Must toggle CS pin manually
+ * @note Assumes 8-bit registers
+ * 
+ * @param SPI [SPI_TypeDef*] SPI Peripheral to use
+ * @param reg [uint8_t] Register Address
+ * @return uint8_t Register Data
+ */
+uint8_t SPI_Read_Reg(SPI_TypeDef* SPI, uint8_t reg);

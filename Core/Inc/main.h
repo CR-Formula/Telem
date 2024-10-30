@@ -39,8 +39,8 @@ extern "C" {
 
 #include "gpio.h"
 #include "can.h"
+
 #include "gps.h"
-#include "spi.h"
 #include "lora.h"
 
 /* Macros  ------------------------------------------------------------------*/
