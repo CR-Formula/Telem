@@ -47,3 +47,25 @@ SPI_Status SPI_Write_Reg(SPI_TypeDef* SPI, uint8_t reg, uint8_t data);
  * @return uint8_t Register Data
  */
 uint8_t SPI_Read_Reg(SPI_TypeDef* SPI, uint8_t reg);
+
+/**
+ * @brief Write a data buffer to the SPI Bus
+ * 
+ * @param SPI [SPI_TypeDef*] SPI Peripheral to use
+ * @param reg [uint8_t] Register Address
+ * @param data [uint8_t*] Data Buffer to write
+ * @param len [size_t] Length of Data Buffer
+ * @return SPI_Status 
+ */
+SPI_Status SPI_Write(SPI_TypeDef* SPI, uint8_t reg, uint8_t* data, size_t len);
+
+/**
+ * @brief Read Data from the SPI Bus
+ * 
+ * @param SPI [SPI_TypeDef*] SPI Peripheral to use
+ * @param reg [uint8_t] Register Address
+ * @param data [uint8_t*] Data Buffer to read into
+ * @param len [size_t] Length of Data Buffer
+ * @return SPI_Status 
+ */
+SPI_Status SPI_Read(SPI_TypeDef* SPI, uint8_t reg, uint8_t* data, size_t len);

@@ -43,20 +43,22 @@ SPI_Status SPI_Write_Reg(SPI_TypeDef* SPI, uint8_t reg, uint8_t data) {
   SPI->DR = reg;
   // while (!(SPI->SR & SPI_SR_RXNE)); // Wait until RXNE is set
   // (void)SPI->DR; // Read DR to clear RXNE
-  while(!(SPI->SR & SPI_SR_TXE)); 
+  while (!(SPI->SR & SPI_SR_TXE)); 
   SPI->DR = data;
+  while (!(SPI->SR & SPI_SR_TXE));
   while (SPI->SR & SPI_SR_BSY); // Wait until SPI is not busy
 }
 
 uint8_t SPI_Read_Reg(SPI_TypeDef* SPI, uint8_t reg) {
   while (!(SPI->SR & SPI_SR_TXE)); // Wait until TXE is set
   SPI->DR = reg; // Write data to Data Register
-  while (!(SPI->SR & SPI_SR_RXNE)); // Wait until RXNE is set
-  uint8_t data = SPI->DR; // Read DR to clear RXNE
+  while ((SPI->SR & SPI_SR_RXNE)); // Wait until RXNE is set
+  volatile uint8_t data = SPI->DR; // Read DR to clear RXNE
   while(!(SPI->SR & SPI_SR_TXE)); // Wait until TXE is set
   SPI->DR = 0; // Write dummy data to read
-  while (!(SPI->SR & SPI_SR_RXNE)); // Wait until RXNE is set
+  while ((SPI->SR & SPI_SR_RXNE)); // Wait until RXNE is set
   data = SPI->DR; // Read DR to clear RXNE
+  while (!(SPI->SR & SPI_SR_TXE));
   while (SPI->SR & SPI_SR_BSY); // Wait until SPI is not busy
   return data;
 }

@@ -52,44 +52,42 @@ static LoRa_Status Lora_Read(uint8_t reg, uint8_t* data, size_t len);
 static LoRa_Status Lora_Write_Reg(uint8_t reg, uint8_t data) {
     reg = reg | LORA_WRITE; // Set Write Bit
     Clear_Pin(LORA_GPIO, LORA_CS); // Set CS Low
-    SPI_Transmit(LORA_SPI, reg); // Send Address
-    SPI_Transmit(LORA_SPI, data); // Send Data
+    SPI_Write_Reg(LORA_SPI, reg, data); // Send Address and Data
     Set_Pin(LORA_GPIO, LORA_CS); // Set CS High
     return LORA_OK;
 }
 
 static LoRa_Status Lora_Write(uint8_t reg, uint8_t* data, size_t len) {
-    reg = reg | LORA_WRITE; // Set Write Bit
-    Clear_Pin(LORA_GPIO, LORA_CS); // Set CS Low
-    SPI_Transmit(LORA_SPI, reg); // Send Address
-    for (size_t i = 0; i < len; i++) {
-        SPI_Transmit(LORA_SPI, data[i]); // Send Data
-    }
-    Set_Pin(LORA_GPIO, LORA_CS); // Set CS High
+    // reg = reg | LORA_WRITE; // Set Write Bit
+    // Clear_Pin(LORA_GPIO, LORA_CS); // Set CS Low
+    // SPI_Transmit(LORA_SPI, reg); // Send Address
+    // for (size_t i = 0; i < len; i++) {
+    //     SPI_Transmit(LORA_SPI, data[i]); // Send Data
+    // }
+    // Set_Pin(LORA_GPIO, LORA_CS); // Set CS High
     return LORA_OK;
 }
 
 static uint8_t Lora_Read_Reg(uint8_t reg) {
     reg = reg & ~LORA_WRITE; // Clear Read Bit
     Clear_Pin(LORA_GPIO, LORA_CS); // Set CS Low
-    SPI_Transmit(LORA_SPI, reg); // Send Address
-    uint8_t data = SPI_Transmit(LORA_SPI, 0); // Read Data
+    uint8_t data = SPI_Read_Reg(LORA_SPI, reg); // Read Data
     Set_Pin(LORA_GPIO, LORA_CS); // Set CS High
     return data;
 }
 
 static LoRa_Status Lora_Read(uint8_t reg, uint8_t* data, size_t len) {
-    reg = reg & ~LORA_WRITE; // Clear Read Bit
-    SPI_Transmit(LORA_SPI, reg); // Send Address
-    for (size_t i = 0; i < len; i++) {
-        data[i] = SPI_Transmit(LORA_SPI, 0); // Read Data
-    }
+    // reg = reg & ~LORA_WRITE; // Clear Read Bit
+    // SPI_Transmit(LORA_SPI, reg); // Send Address
+    // for (size_t i = 0; i < len; i++) {
+    //     data[i] = SPI_Transmit(LORA_SPI, 0); // Read Data
+    // }
     return LORA_OK;
 }
 
 LoRa_Status Lora_Init() {
     // Set RFM95W to LoRa Mode
-    uint8_t regData = Lora_Read_Reg(RegOpMode);
+    volatile uint8_t regData = Lora_Read_Reg(RegOpMode);
     regData |= RegOpMode_LongRangeMode;
     Lora_Write_Reg(RegOpMode, regData);
     
