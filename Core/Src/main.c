@@ -95,6 +95,8 @@ void GPS_Task() {
 
 void Lora_Task() {
   LoRa_Status status;
+  Set_Pin(GPIOB, 12); // Reset LoRa
+  Clear_Pin(GPIOB, 12);
   status = Lora_Init();
   while (status != LORA_OK) {
     status = Lora_Init();

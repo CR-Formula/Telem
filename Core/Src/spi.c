@@ -28,14 +28,17 @@ void SPI2_Init() {
                 & GPIO_PUPDR_PUPD14 & GPIO_PUPDR_PUPD15;
   GPIOB->PUPDR |= (0x1 << GPIO_PUPDR_PUPD12) | (0x1 << GPIO_PUPDR_PUPD14); // CS and MISO Pull Up
 
-  // Set Baud Rate to fPCLK/32, SSM to Software, SSI to High
-  SPI2->CR1 = (0x4 << SPI_CR1_BR_Pos) | SPI_CR1_SSM | SPI_CR1_SSI; // Set Baud Rate to fPCLK/32
+  // Set Baud Rate to fPCLK/32
+  SPI2->CR1 |= (0x4 << SPI_CR1_BR_Pos); // Set Baud Rate to fPCLK/32
 
-  // Set CPHA = CPOL = 0, MSB First, Frame Format = Motorola, 8-bit Data Frame
+  // Set CPHA = CPOL = 0, MSB First, 8-bit Data Frame, Software Slave Management
   SPI2->CR1 &= ~SPI_CR1_CPHA & ~SPI_CR1_LSBFIRST & ~SPI_CR1_CPOL
-            & ~SPI_CR2_FRF & ~SPI_CR1_DFF;
+            & ~SPI_CR1_DFF & ~SPI_CR1_SSM;
+  // Set Frame Format = Motorola
+  SPI2->CR2 &= ~SPI_CR2_FRF;
   
   SPI2->CR1 |= SPI_CR1_MSTR | SPI_CR1_SPE; // Set Master and Enable
+  GPIOB->BSRR |= GPIO_BSRR_BS12; // Set CS High
 }
 
 SPI_Status SPI_Write_Reg(SPI_TypeDef* SPI, uint8_t reg, uint8_t data) {
@@ -47,12 +50,14 @@ SPI_Status SPI_Write_Reg(SPI_TypeDef* SPI, uint8_t reg, uint8_t data) {
   SPI->DR = data;
   while (!(SPI->SR & SPI_SR_TXE));
   while (SPI->SR & SPI_SR_BSY); // Wait until SPI is not busy
+  uint8_t read = SPI->DR; // Read DR to clear RXNE
+  read = SPI->SR; // Clears OVR 
 }
 
 uint8_t SPI_Read_Reg(SPI_TypeDef* SPI, uint8_t reg) {
   while (!(SPI->SR & SPI_SR_TXE)); // Wait until TXE is set
   SPI->DR = reg; // Write data to Data Register
-  while ((SPI->SR & SPI_SR_RXNE)); // Wait until RXNE is set
+  while ((SPI->SR & SPI_SR_TXE)); // Wait until RXNE is set
   volatile uint8_t data = SPI->DR; // Read DR to clear RXNE
   while(!(SPI->SR & SPI_SR_TXE)); // Wait until TXE is set
   SPI->DR = 0; // Write dummy data to read
@@ -61,4 +66,18 @@ uint8_t SPI_Read_Reg(SPI_TypeDef* SPI, uint8_t reg) {
   while (!(SPI->SR & SPI_SR_TXE));
   while (SPI->SR & SPI_SR_BSY); // Wait until SPI is not busy
   return data;
+}
+
+SPI_Status SPI_Transmit(SPI_TypeDef* SPI, uint8_t data) {
+  while (!(SPI->SR & SPI_SR_TXE)); // Wait until TXE is set
+  SPI->DR = data; // Write data to Data Register
+  while (!(SPI->SR & SPI_SR_TXE)); // Wait until RXNE is set
+  return SPI_OK;
+}
+
+uint8_t SPI_Receive(SPI_TypeDef* SPI) {
+  while (SPI->SR & SPI_SR_BSY); // Wait until SPI is not busy
+  SPI->DR = 0; // Write dummy data to read
+  while (!(SPI->SR & SPI_SR_RXNE)); // Wait until RXNE is set
+  return SPI->DR; // Read DR to clear RXNE
 }

@@ -69,3 +69,7 @@ SPI_Status SPI_Write(SPI_TypeDef* SPI, uint8_t reg, uint8_t* data, size_t len);
  * @return SPI_Status 
  */
 SPI_Status SPI_Read(SPI_TypeDef* SPI, uint8_t reg, uint8_t* data, size_t len);
+
+SPI_Status SPI_Transmit(SPI_TypeDef* SPI, uint8_t data);
+
+uint8_t SPI_Receive(SPI_TypeDef* SPI);
