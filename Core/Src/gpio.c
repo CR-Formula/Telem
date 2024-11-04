@@ -50,5 +50,5 @@ void Set_Pin(GPIO_TypeDef* GPIO, uint8_t pin) {
  * @param pin [uint8_t] Pin to set low
  */
 void Clear_Pin(GPIO_TypeDef* GPIO, uint8_t pin) {
-  GPIO->BSRR &= (1 << pin+16);
+  GPIO->BSRR |= (1 << (pin+16));
 }

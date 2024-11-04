@@ -25,6 +25,7 @@ void main() {
   CAN_Filters_Init();
   CAN_Start();
   SPI2_Init();
+  Set_Pin(LORA_GPIO, LORA_CS);
 
   // Create FreeRTOS Tasks
   Task_Status &= xTaskCreate(Status_LED, "Status_Task", 64, NULL, 2, NULL);
@@ -95,8 +96,6 @@ void GPS_Task() {
 
 void Lora_Task() {
   LoRa_Status status;
-  Set_Pin(GPIOB, 12); // Reset LoRa
-  Clear_Pin(GPIOB, 12);
   status = Lora_Init();
   while (status != LORA_OK) {
     status = Lora_Init();

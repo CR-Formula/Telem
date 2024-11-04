@@ -37,15 +37,17 @@ void SPI2_Init() {
 }
 
 SPI_Status SPI_Transmit(SPI_TypeDef* SPI, uint8_t* data, size_t len) {
-  while (!(SPI->SR & SPI_SR_TXE)); // Wait until TXE is set
-  SPI->DR = data; // Write data to Data Register
-  while (!(SPI->SR & SPI_SR_TXE)); // Wait until RXNE is set
+  for (size_t i = 0; i < len; i++) {
+    while (!(SPI->SR & SPI_SR_TXE)); // Wait until TXE is set
+    SPI->DR = data[i]; // Write data to DR
+  }
   return SPI_OK;
 }
 
 SPI_Status SPI_Receive(SPI_TypeDef* SPI, uint8_t* buf, size_t len) {
-  while (SPI->SR & SPI_SR_BSY); // Wait until SPI is not busy
-  SPI->DR = 0; // Write dummy data to read
-  while (!(SPI->SR & SPI_SR_RXNE)); // Wait until RXNE is set
-  return SPI->DR; // Read DR to clear RXNE
+  for (size_t i = 0; i < len; i++) {
+    while (!(SPI->SR & SPI_SR_RXNE)); // Wait until RXNE is set
+    buf[i] = SPI->DR; // Read data from DR
+  }
+  return SPI_OK;
 }

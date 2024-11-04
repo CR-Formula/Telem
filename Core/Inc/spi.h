@@ -28,6 +28,7 @@ void SPI2_Init();
 
 /**
  * @brief Transmit data over SPI
+ * @note Blocking/Polling Call
  * 
  * @param SPI [SPI_TypeDef*] SPI Peripheral to use
  * @param data [uint8_t*] Data buffer to send
@@ -37,7 +38,7 @@ SPI_Status SPI_Transmit(SPI_TypeDef* SPI, uint8_t* data, size_t len);
 
 /**
  * @brief Receive data over SPI
- * @note Sends dummy data in order to read
+ * @note Blocking/Polling Call
  * 
  * @param SPI [SPI_TypeDef*] SPI Peripheral to use
  * @param buf [uint8_t*] Buffer to read into
