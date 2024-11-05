@@ -34,20 +34,49 @@ void SPI2_Init() {
 
   // Enable SPI
   SPI2->CR1 |= SPI_CR1_SPE;
+  GPIOB->BSRR = GPIO_BSRR_BS12; // Set NSS High
 }
 
 SPI_Status SPI_Transmit(SPI_TypeDef* SPI, uint8_t* data, size_t len) {
-  for (size_t i = 0; i < len; i++) {
-    while (!(SPI->SR & SPI_SR_TXE)); // Wait until TXE is set
-    SPI->DR = data[i]; // Write data to DR
+  if (SPI->CR1 & SPI_CR1_DFF) { // 16-bit Data Frame
+    while (len > 0) {
+      while (!(SPI->SR & SPI_SR_TXE)); // Wait until TXE is set
+      SPI->DR = *((uint16_t*)data); // Write data to DR
+      // increment data pointer by 2 bytes and len by 2
+      data += 2;
+      len -= 2;
+    }
+    while (SPI->SR & SPI_SR_BSY); // Wait until BSY is cleared
+  }
+  else { // 8-bit Data Frame
+    for (size_t i = 0; i < len; i++) {
+      while (!(SPI->SR & SPI_SR_TXE));
+      SPI->DR = data[i];
+    }
+    while (SPI->SR & SPI_SR_BSY); // Wait until BSY is cleared
   }
   return SPI_OK;
 }
 
 SPI_Status SPI_Receive(SPI_TypeDef* SPI, uint8_t* buf, size_t len) {
-  for (size_t i = 0; i < len; i++) {
-    while (!(SPI->SR & SPI_SR_RXNE)); // Wait until RXNE is set
-    buf[i] = SPI->DR; // Read data from DR
+  if (SPI->CR1 & SPI_CR1_DFF) { // 16-bit Data Frame
+    while (len > 0) {
+      while (!(SPI->SR & SPI_SR_RXNE)); // Wait until RXNE is set
+      *((uint16_t*)buf) = SPI->DR; // Read data from DR
+      // increment data pointer by 2 bytes and len by 2
+      buf += 2;
+      len -= 2;
+    }
+    while (SPI->SR & SPI_SR_BSY); // Wait until BSY is cleared
+  }
+  else { // 8-bit Data Frame
+    for (size_t i = 0; i < len; i++) {
+      SPI->DR = 0x00; // Write dummy data to DR
+      while (!(SPI->SR & SPI_SR_RXNE)); // Wait until RXNE is set
+      buf[i] = SPI->DR; // Read data from DR
+    }
+    while (SPI->SR & SPI_SR_BSY); // Wait until BSY is cleared
   }
   return SPI_OK;
 }
+

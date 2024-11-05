@@ -25,7 +25,6 @@ void main() {
   CAN_Filters_Init();
   CAN_Start();
   SPI2_Init();
-  Set_Pin(LORA_GPIO, LORA_CS);
 
   // Create FreeRTOS Tasks
   Task_Status &= xTaskCreate(Status_LED, "Status_Task", 64, NULL, 2, NULL);

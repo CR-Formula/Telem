@@ -61,12 +61,16 @@ static LoRa_Status Lora_Write(uint8_t reg, uint8_t* data, size_t len) {
     reg = reg | LORA_WRITE;
     Clear_Pin(LORA_GPIO, LORA_CS);
     SPI_Transmit(LORA_SPI, &reg, 1);
+    volatile uint8_t status;
+    status = status + 5;
+    status = status + reg;
     SPI_Transmit(LORA_SPI, data, len);
     Set_Pin(LORA_GPIO, LORA_CS);
     return LORA_OK;
 }
 
 static uint8_t Lora_Read_Reg(uint8_t reg) {
+    reg &= ~LORA_WRITE;
     Clear_Pin(LORA_GPIO, LORA_CS);
     SPI_Transmit(LORA_SPI, &reg, 1);
     uint8_t data;
@@ -84,8 +88,9 @@ static LoRa_Status Lora_Read(uint8_t reg, uint8_t* data, size_t len) {
 }
 
 LoRa_Status Lora_Init() {
+    uint8_t regData;
     // Set RFM95W to LoRa Mode
-    uint8_t regData = Lora_Read_Reg(RegOpMode);
+    regData = Lora_Read_Reg(RegOpMode);
     regData |= RegOpMode_LongRangeMode;
     Lora_Write_Reg(RegOpMode, regData);
     
