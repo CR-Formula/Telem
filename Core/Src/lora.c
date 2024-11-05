@@ -50,39 +50,49 @@ static LoRa_Status Lora_Read(uint8_t reg, uint8_t* data, size_t len);
 /* Function Implementation --------------------------------------------------*/
 
 static LoRa_Status Lora_Write_Reg(uint8_t reg, uint8_t data) {
+    LoRa_Status status = LORA_OK;
     uint8_t txData[2] = {reg | LORA_WRITE, data};
     Clear_Pin(LORA_GPIO, LORA_CS);
-    SPI_Transmit(LORA_SPI, txData, sizeof(txData));
+    status |= SPI_Transmit(LORA_SPI, txData, sizeof(txData));
+    while (status != LORA_OK);
     Set_Pin(LORA_GPIO, LORA_CS);
-    return LORA_OK;
+    return status;
 }
 
 static LoRa_Status Lora_Write(uint8_t reg, uint8_t* data, size_t len) {
+    LoRa_Status status = LORA_OK;
     reg = reg | LORA_WRITE;
     Clear_Pin(LORA_GPIO, LORA_CS);
-    SPI_Transmit(LORA_SPI, &reg, 1);
-    volatile uint8_t status;
-    SPI_Transmit(LORA_SPI, data, len);
+    status |= SPI_Transmit(LORA_SPI, &reg, 1);
+    while (status != LORA_OK);
+    status |= SPI_Transmit(LORA_SPI, data, len);
+    while (status != LORA_OK);
     Set_Pin(LORA_GPIO, LORA_CS);
-    return LORA_OK;
+    return status;
 }
 
 static uint8_t Lora_Read_Reg(uint8_t reg) {
+    uint8_t data;
+    LoRa_Status status = LORA_OK;
     reg &= ~LORA_WRITE;
     Clear_Pin(LORA_GPIO, LORA_CS);
-    SPI_Transmit(LORA_SPI, &reg, 1);
-    uint8_t data;
-    SPI_Receive(LORA_SPI, &data, 1);
+    status |= SPI_Transmit(LORA_SPI, &reg, 1);
+    while (status != LORA_OK);
+    status |= (LORA_SPI, &data, 1);
+    while (status != LORA_OK);
     Set_Pin(LORA_GPIO, LORA_CS);
     return data;
 }
 
 static LoRa_Status Lora_Read(uint8_t reg, uint8_t* data, size_t len) {
+    LoRa_Status status = LORA_OK;
     Clear_Pin(LORA_GPIO, LORA_CS);
-    SPI_Transmit(LORA_SPI, &reg, 1);
-    SPI_Receive(LORA_SPI, data, len);
+    status |= SPI_Transmit(LORA_SPI, &reg, 1);
+    while (status != LORA_OK);
+    status |= SPI_Receive(LORA_SPI, data, len);
+    while (status != LORA_OK);
     Set_Pin(LORA_GPIO, LORA_CS);
-    return LORA_OK;
+    return status;
 }
 
 LoRa_Status Lora_Init() {
