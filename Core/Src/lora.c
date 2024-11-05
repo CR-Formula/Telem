@@ -62,8 +62,6 @@ static LoRa_Status Lora_Write(uint8_t reg, uint8_t* data, size_t len) {
     Clear_Pin(LORA_GPIO, LORA_CS);
     SPI_Transmit(LORA_SPI, &reg, 1);
     volatile uint8_t status;
-    status = status + 5;
-    status = status + reg;
     SPI_Transmit(LORA_SPI, data, len);
     Set_Pin(LORA_GPIO, LORA_CS);
     return LORA_OK;
