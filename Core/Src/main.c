@@ -15,8 +15,6 @@ Telemetry telemetry;
 void main() {
   uint8_t Task_Status = 1;
 
-  // TODO: Split Init into Peripherals and Devices
-  // TODO: Create Init checks that reruns if failed
   // Initialize Hardware
   Sysclk_168();
   LED_Init();
@@ -25,6 +23,7 @@ void main() {
   CAN_Filters_Init();
   CAN_Start();
   SPI2_Init();
+  GPIO_Init();
 
   // Create FreeRTOS Tasks
   Task_Status &= xTaskCreate(Status_LED, "Status_Task", 64, NULL, 2, NULL);
@@ -95,6 +94,10 @@ void GPS_Task() {
 
 void Lora_Task() {
   LoRa_Status status;
+  Set_Pin(LORA_IO_PORT, LORA_RST);
+  osDelay(10);
+  Clear_Pin(LORA_IO_PORT, LORA_RST);
+  osDelay(10);
   status = Lora_Init();
   while (status != LORA_OK) {
     status = Lora_Init();

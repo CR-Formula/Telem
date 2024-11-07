@@ -16,6 +16,13 @@
 void LED_Init();
 
 /**
+ * @brief Initialize GPIO Pins used in the Telem system
+ * @note PA8 LoRa RST, PA9 LoRa INT
+ * 
+ */
+void GPIO_Init();
+
+/**
  * @brief Toggle a given GPIO pin on or off
  * 
  * @param GPIO [GPIO_TypeDef*] GPIO Port to use

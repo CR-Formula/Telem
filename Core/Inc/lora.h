@@ -18,6 +18,10 @@
 #define LORA_CS             12 // PB12 for CS
 #define LORA_WRITE          0x80 // Mask for write command
 
+#define LORA_IO_PORT        (GPIO_TypeDef*)GPIOA
+#define LORA_RST            8 // PA8 for Reset
+#define LORA_INT            9 // PA9 for Interrupt
+
 /* Structs and Enums --------------------------------------------------------*/
 typedef enum {
     LORA_OK,

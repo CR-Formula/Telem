@@ -32,57 +32,67 @@ void SPI2_Init() {
   SPI2->CR2 &= ~SPI_CR2_FRF;
   SPI2->CR2 |= SPI_CR2_SSOE;
 
-  // Enable SPI
-  SPI2->CR1 |= SPI_CR1_SPE;
-  GPIOB->BSRR = GPIO_BSRR_BS12; // Set NSS High
+  // Set NSS High
+  GPIOB->BSRR = GPIO_BSRR_BS12;
 }
 
 SPI_Status SPI_Transmit(SPI_TypeDef* SPI, uint8_t* data, size_t len) {
+  SPI->CR1 |= SPI_CR1_SPE; // Enable SPI
   if (SPI->CR1 & SPI_CR1_DFF) { // 16-bit Data Frame
     while (len > 0) {
-      while (!(SPI->SR & SPI_SR_TXE)); // Wait until TXE is set
-      SPI->DR = *((uint16_t*)data); // Write data to DR
+      while (!(SPI->SR & SPI_SR_TXE)); 
+      SPI->DR = *((uint16_t*)data);
       // increment data pointer by 2 bytes
       data += sizeof(uint16_t);
       len--;
+      while (!(SPI->SR & SPI_SR_RXNE));
+      (void)SPI->DR;
     }
   }
   else { // 8-bit Data Frame
-    while (len > 0) {
+    for (size_t i = 0; i < len; i++) {
       while (!(SPI->SR & SPI_SR_TXE));
-      SPI->DR = *data;
-      data += sizeof(uint8_t);
-      len--;
+      SPI->DR = data[i];
+      while (!(SPI->SR & SPI_SR_RXNE));
+      (void)SPI->DR;
     }
   }
   // Wait for last byte to be sent
-    while (!(SPI->SR & SPI_SR_TXE));
-    while (SPI->SR & SPI_SR_BSY);
+  while (!(SPI->SR & SPI_SR_TXE));
+  while (SPI->SR & SPI_SR_BSY);
+
+  SPI->CR1 &= ~SPI_CR1_SPE; // Disable SPI
+
   return SPI_OK;
 }
 
 SPI_Status SPI_Receive(SPI_TypeDef* SPI, uint8_t* buf, size_t len) {
+  SPI->CR1 |= SPI_CR1_SPE; // Enable SPI
   if (SPI->CR1 & SPI_CR1_DFF) { // 16-bit Data Frame
     while (len > 0) {
-      SPI->DR = 0x0000; // Write dummy data to DR
-      while (!(SPI->SR & SPI_SR_RXNE)); // Wait until RXNE is set
-      *((uint16_t*)buf) = SPI->DR; // Read data from DR
+      while(!(SPI->SR & SPI_SR_TXE));
+      SPI->DR = 0x0000; // Dummy Data
+      while (!(SPI->SR & SPI_SR_RXNE));
+      *((uint16_t*)buf) = SPI->DR; // Cast to 16-bit
       // increment data pointer by 2 bytes and len by 2
       buf += sizeof(uint16_t);
       len --;
     }
   }
   else { // 8-bit Data Frame
-    while (len > 0) {
-      SPI->DR = 0x00; // Write dummy data to DR
+    for (size_t i = 0; i < len; i++) {
+      while(!(SPI->SR & SPI_SR_TXE));
+      SPI->DR = 0x00; // Dummy Data to generate clk
       while (!(SPI->SR & SPI_SR_RXNE));
-      *buf = SPI->DR;
-      buf += sizeof(uint8_t);
-      len--;
+      buf[i] = SPI->DR;
     }
   }
   // Wait for last byte to be received
+  while(SPI->SR & SPI_SR_RXNE);
   while (SPI->SR & SPI_SR_BSY);
+
+  SPI->CR1 &= ~SPI_CR1_SPE; // Disable SPI
+
   return SPI_OK;
 }
 
