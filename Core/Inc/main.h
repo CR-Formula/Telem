@@ -40,6 +40,7 @@ extern "C" {
 #include "gpio.h"
 #include "can.h"
 #include "gps.h"
+#include "adc.h"
 
 /* Macros  ------------------------------------------------------------------*/
 #define STATUS_LED_PIN          13
@@ -98,6 +99,12 @@ void CAN_Task();
  * @param argument 
  */
 void GPS_Task();
+
+/**
+ * @brief Thread for handling ADC communication
+ * @note pulls values from DMA buffer and calculates Sensor values
+ */
+void ADC_Task();
 
 /**
  * @brief Main Function to start FreeRTOS and initialize peripherals

@@ -10,6 +10,7 @@
 
 /* Global Variables ---------------------------------------------------------*/
 Telemetry telemetry;
+uint16_t ADC_Buffer[16];
 
 /* Function Calls -----------------------------------------------------------*/
 void main() {
@@ -24,11 +25,13 @@ void main() {
   CAN1_Init();
   CAN_Filters_Init();
   CAN_Start();
+  DMA_ADC1_Init(&ADC_Buffer);
 
   // Create FreeRTOS Tasks
   Task_Status &= xTaskCreate(Status_LED, "Status_Task", 64, NULL, 2, NULL);
   Task_Status &= xTaskCreate(CAN_Task, "CAN_Task", 128, NULL, 2, NULL);
   Task_Status &= xTaskCreate(GPS_Task, "GPS_Task", 512, NULL, 1, NULL);
+  Task_Status &= xTaskCreate(ADC_Task, "ADC_Task", 128, NULL, 1, NULL);
 
   if (Task_Status != pdPASS) {
     Error_Handler();
@@ -88,6 +91,16 @@ void GPS_Task() {
       osDelay(100); // Wait for GPS to recover
     }
     osDelay(40); // 25Hz rate = 40ms period
+  }
+}
+
+void ADC_Task() {
+  while(1) {
+    telemetry.FRPot = ADC_Buffer[0];
+    telemetry.RRPot = ADC_Buffer[1];
+    telemetry.FRTemp = ADC_Buffer[2];
+    telemetry.RRTemp = ADC_Buffer[3];
+    osDelay(10); // 100Hz rate = 10ms period
   }
 }
 
