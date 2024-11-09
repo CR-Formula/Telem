@@ -8,6 +8,8 @@
 
 #include "lora.h"
 
+LoRa_Mode loraMode = LORA_STANDBY; // Module inits to Standby Mode
+
 /* Static Functions ---------------------------------------------------------*/
 
 /**
@@ -86,7 +88,13 @@ static LoRa_Status Lora_Read(uint8_t reg, uint8_t* data, size_t len) {
 
 LoRa_Status Lora_Init() {
     volatile uint8_t regData = 0;
-    // Set RFM95W to LoRa Mode
+    // Enter Sleep Mode
+    regData = Lora_Read_Reg(RegOpMode);
+    regData &= ~RegOpMode_Mode;
+    Lora_Write_Reg(RegOpMode, regData);
+    loraMode = LORA_SLEEP;
+
+    // Set Long Range Mode (LoRa)
     regData = Lora_Read_Reg(RegOpMode);
     regData |= RegOpMode_LongRangeMode;
     Lora_Write_Reg(RegOpMode, regData);
@@ -105,6 +113,7 @@ LoRa_Status Lora_Init() {
 
     // Set Bandwidth to 500 kHz and Coding Rate to 4/5
     regData = Lora_Read_Reg(RegModemConfig1);
+    regData &= ~RegModemConfig1_Bw & ~RegModemConfig1_CodingRate;
     regData |= (0x9 << RegModemConfig1_Bw_Pos) | (0x1 << RegModemConfig1_CodingRate_Pos);
     Lora_Write_Reg(RegModemConfig1, regData);
 
@@ -112,6 +121,12 @@ LoRa_Status Lora_Init() {
     regData = Lora_Read_Reg(RegModemConfig2);
     regData |= (0x6 << RegModemConfig2_SpreadingFactor_Pos);
     Lora_Write_Reg(RegModemConfig2, regData);
+
+    // Set the Module to Standby Mode
+    regData = Lora_Read_Reg(RegOpMode);
+    regData |= (LORA_STANDBY << RegOpMode_Mode_Pos);
+    Lora_Write_Reg(RegOpMode, regData);
+    loraMode = LORA_STANDBY;
 
     return LORA_OK;
 }

@@ -50,9 +50,11 @@ SPI_Status SPI_Transmit(SPI_TypeDef* SPI, uint8_t* data, size_t len) {
     }
   }
   else { // 8-bit Data Frame
-    for (size_t i = 0; i < len; i++) {
+    while (len > 0) {
       while (!(SPI->SR & SPI_SR_TXE));
-      SPI->DR = data[i];
+      SPI->DR = *data;
+      data++;
+      len--;
       while (!(SPI->SR & SPI_SR_RXNE));
       (void)SPI->DR;
     }

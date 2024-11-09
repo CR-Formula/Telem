@@ -28,6 +28,17 @@ typedef enum {
     LORA_ERROR,
 } LoRa_Status;
 
+typedef enum {
+    LORA_SLEEP,
+    LORA_STANDBY,
+    LORA_FREQ_SYNTH_TX,
+    LORA_TX,
+    LORA_FREQ_SYNTH_RX,
+    LORA_RX_CONTINUOUS,
+    LORA_RX_SINGLE,
+    LORA_CAD,
+} LoRa_Mode;
+
 /* Function Prototypes ------------------------------------------------------*/
 
 /**
