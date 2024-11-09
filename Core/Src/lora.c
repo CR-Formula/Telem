@@ -131,22 +131,100 @@ LoRa_Status Lora_Init() {
     return LORA_OK;
 }
 
-LoRa_Status Lora_Transmit(uint8_t* data, uint8_t len) {
-    return LORA_OK;
-}
-
-LoRa_Status Lora_Receive(uint8_t* data, uint8_t len) {
-    return LORA_OK;
-}
-
 LoRa_Status Lora_Set_SF(uint8_t sf) {
+    // Check input range
+    if (sf < LORA_SF_6) {
+        sf = LORA_SF_6;
+    }
+    else if (sf > LORA_SF_12) {
+        sf = LORA_SF_12;
+    }
+
+    // Read and Rewrite Register
+    uint8_t regData = Lora_Read_Reg(RegModemConfig2);
+    regData &= ~RegModemConfig2_SpreadingFactor;
+    regData |= (sf << RegModemConfig2_SpreadingFactor_Pos);
+    Lora_Write_Reg(RegModemConfig2, regData);
+
     return LORA_OK;
 }
 
 LoRa_Status Lora_Set_BW(uint8_t bw) {
+    // Check input range
+    if (bw < LORA_BW_7_8) {
+        bw = LORA_BW_7_8;
+    }
+    else if (bw > LORA_BW_500) {
+        bw = LORA_BW_500;
+    }
+
+    // Read and Rewrite Register
+    uint8_t regData = Lora_Read_Reg(RegModemConfig1);
+    regData &= ~RegModemConfig1_Bw;
+    regData |= (bw << RegModemConfig1_Bw_Pos);
+    Lora_Write_Reg(RegModemConfig1, regData);
     return LORA_OK;
 }
 
 LoRa_Status Lora_Set_CodingRate(uint8_t cr) {
+    // Check input range
+    if (cr < LORA_CR_4_5) {
+        cr = LORA_CR_4_5;
+    }
+    else if (cr > LORA_CR_4_8) {
+        cr = LORA_CR_4_8;
+    }
+
+    // Read and Rewrite Register
+    uint8_t regData = Lora_Read_Reg(RegModemConfig1);
+    regData &= ~RegModemConfig1_CodingRate;
+    regData |= (cr << RegModemConfig1_CodingRate_Pos);
+    Lora_Write_Reg(RegModemConfig1, regData);
+    return LORA_OK;
+}
+
+LoRa_Status Lora_Transmit(uint8_t* data, uint8_t len) {
+    if (len == 0 || len == NULL || len > 255) {
+        return LORA_ERROR;
+    }
+
+    uint8_t regData = 0;
+    uint8_t count = 0;
+
+    if (loraMode != LORA_STANDBY) {
+        // Set to Standby Mode
+        regData = Lora_Read_Reg(RegOpMode);
+        regData &= (LORA_STANDBY << RegOpMode_Mode_Pos);
+        Lora_Write_Reg(RegOpMode, regData);
+        loraMode = LORA_STANDBY;
+    }
+
+    // Set Address Pointer to TX FIFO and payload length
+    regData = Lora_Read_Reg(RegFifoTxBaseAddr);
+    Lora_Write_Reg(RegFifoAddrPtr, regData);
+    Lora_Write_Reg(RegPayloadLength, len);
+
+    // Write data to FIFO
+    Lora_Write(RegFifo, data, len);
+    
+    // Check for TX Done
+    while(count < LORA_RETRY) {
+        regData = Lora_Read_Reg(RegIrqFlags);
+        if (regData & RegIrqFlags_TxDone) {
+            // Set to Standby Mode
+            regData = Lora_Read_Reg(RegOpMode);
+            regData &= ~(RegOpMode_Mode);
+            regData |= (LORA_STANDBY << RegOpMode_Mode_Pos);
+            Lora_Write_Reg(RegOpMode, regData);
+            loraMode = LORA_STANDBY;
+            break;
+        }
+        count++;
+    }
+
+    return LORA_OK;
+}
+
+LoRa_Status Lora_Receive(uint8_t* data, uint8_t len) {
     return LORA_OK;
 }

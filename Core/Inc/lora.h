@@ -22,6 +22,8 @@
 #define LORA_RST            8 // PA8 for Reset
 #define LORA_INT            9 // PA9 for Interrupt
 
+#define LORA_RETRY          5 // Number of Retries for LoRa Operations
+
 /* Structs and Enums --------------------------------------------------------*/
 typedef enum {
     LORA_OK,
@@ -79,26 +81,10 @@ typedef enum {
 LoRa_Status Lora_Init();
 
 /**
- * @brief Send data buffer over LoRa Connection
- * 
- * @param data [uint8_t*] Data buffer to send
- * @param len [uint8_t] Length of data
- */
-LoRa_Status Lora_Transmit(uint8_t* data, uint8_t len);
-
-/**
- * @brief Read data from LoRa Connection
- * 
- * @param data [uint8_t*] Data buffer to read into
- * @param len [uint8_t] Length of data
- * @return LoRa_Status
- */
-LoRa_Status Lora_Receive(uint8_t* data, uint8_t len);
-
-/**
  * @brief Set the Spreading Factor for LoRa
+ * @note If SF is out of range, it will be set to the closest value
  * 
- * @param sf [uint8_t] Spreading Factor from 1-12
+ * @param sf [uint8_t] Spreading Factor from 6-12
  * @return LoRa_Status
  */
 LoRa_Status Lora_Set_SF(uint8_t sf);
@@ -126,3 +112,20 @@ LoRa_Status Lora_Set_Power(uint8_t power);
  * @return LoRa_Status 
  */
 LoRa_Status Lora_Set_CodingRate(uint8_t cr);
+
+/**
+ * @brief Send data buffer over LoRa Connection
+ * 
+ * @param data [uint8_t*] Data buffer to send
+ * @param len [uint8_t] Length of data
+ */
+LoRa_Status Lora_Transmit(uint8_t* data, uint8_t len);
+
+/**
+ * @brief Read data from LoRa Connection
+ * 
+ * @param data [uint8_t*] Data buffer to read into
+ * @param len [uint8_t] Length of data
+ * @return LoRa_Status
+ */
+LoRa_Status Lora_Receive(uint8_t* data, uint8_t len);
