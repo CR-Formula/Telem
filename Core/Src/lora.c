@@ -147,10 +147,6 @@ LoRa_Status Lora_Set_BW(uint8_t bw) {
     return LORA_OK;
 }
 
-LoRa_Status Lora_Set_Power(uint8_t power) {
-    return LORA_OK;
-}
-
 LoRa_Status Lora_Set_CodingRate(uint8_t cr) {
     return LORA_OK;
 }

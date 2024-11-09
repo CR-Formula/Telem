@@ -39,6 +39,37 @@ typedef enum {
     LORA_CAD,
 } LoRa_Mode;
 
+typedef enum {
+    LORA_SF_6 = 6,
+    LORA_SF_7 = 7,
+    LORA_SF_8 = 8,
+    LORA_SF_9 = 9,
+    LORA_SF_10 = 10,
+    LORA_SF_11 = 11,
+    LORA_SF_12 = 12,
+} LoRa_SF;
+
+typedef enum {
+    LORA_BW_7_8,
+    LORA_BW_10_4,
+    LORA_BW_15_6,
+    LORA_BW_20_8,
+    LORA_BW_31_25,
+    LORA_BW_41_7,
+    LORA_BW_62_5,
+    LORA_BW_125,
+    LORA_BW_250,
+    LORA_BW_500,
+} LoRa_BW;
+
+typedef enum {
+    LORA_CR_ERROR,
+    LORA_CR_4_5,
+    LORA_CR_4_6,
+    LORA_CR_4_7,
+    LORA_CR_4_8,
+} LoRa_CR;
+
 /* Function Prototypes ------------------------------------------------------*/
 
 /**
