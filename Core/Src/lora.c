@@ -206,6 +206,12 @@ LoRa_Status Lora_Transmit(uint8_t* data, uint8_t len) {
 
     // Write data to FIFO
     Lora_Write(RegFifo, data, len);
+
+    // Set to TX Mode
+    regData = Lora_Read_Reg(RegOpMode);
+    regData &= ~(RegOpMode_Mode);
+    regData |= (LORA_TX << RegOpMode_Mode_Pos);
+    Lora_Write_Reg(RegOpMode, regData);
     
     // Check for TX Done
     while(count < LORA_RETRY) {

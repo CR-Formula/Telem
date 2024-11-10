@@ -94,6 +94,7 @@ void GPS_Task() {
 
 void Lora_Task() {
   LoRa_Status status;
+  uint8_t data[] = {0x01, 0x02, 0x03, 0x04, 0x05};
   Clear_Pin(LORA_IO_PORT, LORA_RST);
   osDelay(10);
   Set_Pin(LORA_IO_PORT, LORA_RST);
@@ -101,8 +102,8 @@ void Lora_Task() {
   status = Lora_Init();
 
   while(1) {
-    // TODO: Implement LoRa Task
-    // osDelay(1000);
+    Lora_Transmit((uint8_t*)&data, sizeof(data));
+    vTaskDelay(1000);
   }
 }
 
