@@ -26,8 +26,8 @@ void main() {
   GPIO_Init();
 
   // Create FreeRTOS Tasks
-  Task_Status &= xTaskCreate(Status_LED, "Status_Task", 64, NULL, 2, NULL);
-  Task_Status &= xTaskCreate(CAN_Task, "CAN_Task", 128, NULL, 2, NULL);
+  Task_Status &= xTaskCreate(Status_LED, "Status_Task", 128, NULL, 2, NULL);
+  Task_Status &= xTaskCreate(CAN_Task, "CAN_Task", 256, NULL, 2, NULL);
   Task_Status &= xTaskCreate(GPS_Task, "GPS_Task", 512, NULL, 1, NULL);
   Task_Status &= xTaskCreate(Lora_Task, "Lora_Task", 128, NULL, 2, NULL);
 
@@ -41,11 +41,12 @@ void main() {
 }
 
 void Status_LED() {
+  const TickType_t StatusFrequency = 1000;
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while(1) {
     Toggle_Pin(GPIOC, STATUS_LED_PIN);
-    vTaskDelayUntil(&xLastWakeTime, 1000);
+    vTaskDelayUntil(&xLastWakeTime, StatusFrequency);
   }
 }
 
@@ -58,6 +59,7 @@ void CAN_Task() {
   };
   volatile CAN_Frame rFrame;
   volatile CAN_Status Receive;
+  const TickType_t CANFrequency = 1000;
 
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
@@ -68,13 +70,14 @@ void CAN_Task() {
       telemetry.RPM = rFrame.data[0] << 8 | rFrame.data[1];
       // TODO: Implement CAN Task
     }
-    vTaskDelayUntil(&xLastWakeTime, 1000);
+    vTaskDelayUntil(&xLastWakeTime, CANFrequency);
   }
 }
 
 void GPS_Task() {
   GPS_Status status;
   volatile GPS_Data data;
+  const TickType_t GPSFrequency = 40; // 25Hz
   vTaskDelay(500); // Delay for GPS Module to Boot
   status = GPS_Init();
 
@@ -94,7 +97,7 @@ void GPS_Task() {
     else {
       vTaskDelay(100); // Wait for GPS to recover
     }
-    vTaskDelayUntil(&xLastWakeTime, 40); // 25Hz rate = 40ms period
+    vTaskDelayUntil(&xLastWakeTime, GPSFrequency); // 25Hz rate = 40ms period
   }
 }
 
