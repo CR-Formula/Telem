@@ -43,9 +43,11 @@ void main() {
 }
 
 void Status_LED() {
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+
   while(1) {
-    osDelay(1000);
     Toggle_Pin(GPIOC, STATUS_LED_PIN);
+    vTaskDelayUntil(&xLastWakeTime, 1000);
   }
 }
 
@@ -59,6 +61,8 @@ void CAN_Task() {
   volatile CAN_Frame rFrame;
   volatile CAN_Status Receive;
 
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+
   while(1) {
     CAN_Transmit(CAN1, &tFrame);
     Receive = CAN_Receive(CAN1, &rFrame);
@@ -66,20 +70,22 @@ void CAN_Task() {
       telemetry.RPM = rFrame.data[0] << 8 | rFrame.data[1];
       // TODO: Implement CAN Task
     }
-    osDelay(1000);
+    vTaskDelayUntil(&xLastWakeTime, 1000);
   }
 }
 
 void GPS_Task() {
   GPS_Status status;
   volatile GPS_Data data;
-  osDelay(500); // Delay for GPS Module to Boot
+  vTaskDelay(500); // Delay for GPS Module to Boot
   status = GPS_Init();
 
   while (status != GPS_OK) {
     status = GPS_Init();
-    osDelay(1000); // Wait for GPS to recover
+    vTaskDelay(1000); // Wait for GPS to recover
   }
+
+  TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while(1) {
     if (Get_Position(&data) == GPS_OK) {
@@ -88,9 +94,9 @@ void GPS_Task() {
       telemetry.Speed = data.speed;
     }
     else {
-      osDelay(100); // Wait for GPS to recover
+      vTaskDelay(100); // Wait for GPS to recover
     }
-    osDelay(40); // 25Hz rate = 40ms period
+    vTaskDelayUntil(&xLastWakeTime, 40); // 25Hz rate = 40ms period
   }
 }
 
