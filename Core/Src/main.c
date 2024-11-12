@@ -103,6 +103,7 @@ void GPS_Task() {
 
 void Lora_Task() {
   LoRa_Status status;
+  uint8_t retryCount = 0;
   const TickType_t LoraFrequency = 1000;
   uint8_t data[] = {0x01, 0x02, 0x03, 0x04, 0x05};
   Clear_Pin(LORA_IO_PORT, LORA_RST);
@@ -110,6 +111,15 @@ void Lora_Task() {
   Set_Pin(LORA_IO_PORT, LORA_RST);
   osDelay(100);
   status = Lora_Init();
+
+  if (status != LORA_OK && retryCount < RETRY_COUNT) {
+    retryCount++;
+    status = Lora_Init();
+  }
+
+  if (retryCount >= RETRY_COUNT) {
+    vTaskDelete(NULL);
+  }
 
   TickType_t xLastWakeTime = xTaskGetTickCount();
 

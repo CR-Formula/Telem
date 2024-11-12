@@ -92,20 +92,28 @@ LoRa_Status Lora_Init() {
     regData = Lora_Read_Reg(RegOpMode);
     regData &= ~RegOpMode_Mode;
     Lora_Write_Reg(RegOpMode, regData);
+    // Check for Sleep Mode
+    if ((Lora_Read_Reg(RegOpMode) & RegOpMode_Mode) != LORA_SLEEP) {
+        return LORA_ERROR;
+    }
     loraMode = LORA_SLEEP;
 
     // Set Long Range Mode (LoRa)
     regData = Lora_Read_Reg(RegOpMode);
     regData |= RegOpMode_LongRangeMode;
     Lora_Write_Reg(RegOpMode, regData);
+    if (!(Lora_Read_Reg(RegOpMode) & RegOpMode_LongRangeMode)) {
+        return LORA_ERROR;
+    }
     
     // Calculate and set Carrier Frequency
-    uint32_t F = (LORA_FREQ * 524288) >> 5;
-    regData = (F >> 16); // MSB
+    uint32_t FreqStep = RFM95_OSC_FREQ / 524288;
+    uint32_t F = LORA_FREQ / FreqStep;
+    regData = ((F >> 16) & 0xFF); // MSB
     Lora_Write_Reg(RegFrfMsb, regData);
-    regData = (F >> 8); // MID
+    regData = ((F >> 8) & 0xFF); // MID
     Lora_Write_Reg(RegFrfMid, regData);
-    regData = (F >> 0); // LSB
+    regData = ((F >> 0) & 0xFF); // LSB
     Lora_Write_Reg(RegFrfLsb, regData);
 
     // Set Power to 20 dBm

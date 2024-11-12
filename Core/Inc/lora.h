@@ -12,7 +12,8 @@
 #include "gpio.h"
 
 /* Macros -------------------------------------------------------------------*/
-#define LORA_FREQ           915 // MHz
+#define LORA_FREQ           915000000 // 915MHz
+#define RFM95_OSC_FREQ      32000000 // 32MHz
 #define LORA_SPI            (SPI_TypeDef*)SPI2
 #define LORA_GPIO           (GPIO_TypeDef*)GPIOB
 #define LORA_CS             12 // PB12 for CS
