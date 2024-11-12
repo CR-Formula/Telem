@@ -104,12 +104,15 @@ void GPS_Task() {
 }
 
 void ADC_Task() {
+  const TickType_t ADCFrequency = 10; // 100Hz
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+
   while(1) {
     telemetry.FRPot = ADC_Buffer[0];
     telemetry.RRPot = ADC_Buffer[1];
     telemetry.FRTemp = ADC_Buffer[2];
     telemetry.RRTemp = ADC_Buffer[3];
-    osDelay(10); // 100Hz rate = 10ms period
+    vTaskDelayUntil(&xLastWakeTime, ADCFrequency); 
   }
 }
 
