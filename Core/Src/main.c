@@ -103,6 +103,7 @@ void GPS_Task() {
 
 void Lora_Task() {
   LoRa_Status status;
+  const TickType_t LoraFrequency = 1000;
   uint8_t data[] = {0x01, 0x02, 0x03, 0x04, 0x05};
   Clear_Pin(LORA_IO_PORT, LORA_RST);
   osDelay(10);
@@ -110,9 +111,11 @@ void Lora_Task() {
   osDelay(100);
   status = Lora_Init();
 
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+
   while(1) {
     Lora_Transmit((uint8_t*)&data, sizeof(data));
-    vTaskDelay(1000);
+    vTaskDelayUntil(&xLastWakeTime, LoraFrequency);
   }
 }
 
