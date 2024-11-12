@@ -236,6 +236,10 @@ LoRa_Status Lora_Transmit(uint8_t* data, uint8_t len) {
         count++;
     }
 
+    if (count >= LORA_RETRY) {
+        return LORA_TX_ERROR;
+    }
+
     return LORA_OK;
 }
 

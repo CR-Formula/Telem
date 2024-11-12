@@ -29,6 +29,7 @@
 typedef enum {
     LORA_OK,
     LORA_ERROR,
+    LORA_TX_ERROR,
 } LoRa_Status;
 
 typedef enum {
