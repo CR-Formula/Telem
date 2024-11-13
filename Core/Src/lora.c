@@ -220,6 +220,7 @@ LoRa_Status Lora_Transmit(uint8_t* data, uint8_t len) {
     regData &= ~(RegOpMode_Mode);
     regData |= (LORA_TX << RegOpMode_Mode_Pos);
     Lora_Write_Reg(RegOpMode, regData);
+    loraMode = LORA_TX;
     
     // Check for TX Done
     while(count < LORA_RETRY) {

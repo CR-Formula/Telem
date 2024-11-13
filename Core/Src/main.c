@@ -108,9 +108,9 @@ void Lora_Task() {
   const TickType_t LoraFrequency = 1000;
   uint8_t data[] = {0x01, 0x02, 0x03, 0x04, 0x05};
   Clear_Pin(LORA_IO_PORT, LORA_RST);
-  osDelay(10);
+  vTaskDelay(10);
   Set_Pin(LORA_IO_PORT, LORA_RST);
-  osDelay(100);
+  vTaskDelay(100);
   status = Lora_Init();
 
   if (status != LORA_OK && retryCount < LORA_RETRY) {
@@ -125,7 +125,7 @@ void Lora_Task() {
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while(1) {
-    status = Lora_Transmit((uint8_t*)&data, sizeof(data));
+    status = Lora_Transmit(&data, sizeof(data));
     if (status != LORA_OK) {
       TXErrorCounter++;
     }
