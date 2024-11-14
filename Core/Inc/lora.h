@@ -11,9 +11,11 @@
 #include "rfm95_reg.h"
 #include "gpio.h"
 
+#include <stdbool.h>
+
 /* Macros -------------------------------------------------------------------*/
 #define LORA_FREQ                   915000000 // 915MHz
-#define RFM95_OSC_FREQ              32000000 // 32MHz
+#define RFM95_OSC_FREQ              32000000.0 // 32MHz
 #define LORA_SPI                    (SPI_TypeDef*)SPI2
 #define LORA_GPIO                   (GPIO_TypeDef*)GPIOB
 #define LORA_CS                     12 // PB12 for CS
@@ -79,7 +81,8 @@ typedef enum {
 
 /**
  * @brief Initialize RFM95w on SPI2
- * @note default 915 MHz, 20 dBm, 500 kHz Bandwidth, 4/5 Coding Rate
+ * @note default 915 MHz, 20 dBm, 500 kHz Bandwidth, 4/5 Coding Rate, 6 sf
+ * @note Preamble Length is 8, CRC is enabled
  */
 LoRa_Status Lora_Init();
 
@@ -115,6 +118,14 @@ LoRa_Status Lora_Set_Power(uint8_t power);
  * @return LoRa_Status 
  */
 LoRa_Status Lora_Set_CodingRate(uint8_t cr);
+
+/**
+ * @brief Set or clear the CRC bit in the RegModemConfig2 register
+ * 
+ * @param crc [bool] True to enable CRC, False to disable
+ * @return LoRa_Status 
+ */
+LoRa_Status Lora_Set_CRC(bool crc);
 
 /**
  * @brief Send data buffer over LoRa Connection

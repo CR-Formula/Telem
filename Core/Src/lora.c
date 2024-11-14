@@ -120,6 +120,13 @@ LoRa_Status Lora_Init() {
         return LORA_ERROR;
     }
 
+    // Configure FIFO Pointers
+    Lora_Write_Reg(RegFifoTxBaseAddr, RegFifo);
+    Lora_Write_Reg(RegFifoRxBaseAddr, RegFifo);
+
+    // Set the Module to Standby Mode
+    Lora_Set_Mode(LORA_STANDBY);
+
     // Set Access to HF Test Registers
     regData = Lora_Read_Reg(RegOpMode);
     regData &= ~RegOpMode_LowFrequencyModeOn;
@@ -144,8 +151,12 @@ LoRa_Status Lora_Init() {
     Lora_Set_BW(LORA_BW_500);
     Lora_Set_SF(LORA_SF_6);
 
-    // Set the Module to Standby Mode
-    Lora_Set_Mode(LORA_STANDBY);
+    // Explicit Header Mode
+    regData = Lora_Read_Reg(RegModemConfig1);
+    regData &= ~RegModemConfig1_ImplicitHeaderModeOn;
+    Lora_Write_Reg(RegModemConfig1, regData);
+
+    Lora_Set_CRC(true);
 
     return LORA_OK;
 }
@@ -202,6 +213,19 @@ LoRa_Status Lora_Set_CodingRate(uint8_t cr) {
     return LORA_OK;
 }
 
+LoRa_Status Lora_Set_CRC(bool crc) {
+    uint8_t regData = Lora_Read_Reg(RegModemConfig2);
+    if (crc) {
+        regData |= RegModemConfig2_RxPayloadCrcOn;
+    }
+    else {
+        regData &= ~RegModemConfig2_RxPayloadCrcOn;
+    }
+    Lora_Write_Reg(RegModemConfig2, regData);
+    
+    return LORA_OK;
+}
+
 LoRa_Status Lora_Transmit(uint8_t* data, uint8_t len) {
     if (len == 0 || len == NULL || len > LORA_MAX_PAYLOAD_LEN || data == NULL) {
         return LORA_ERROR;
@@ -211,14 +235,10 @@ LoRa_Status Lora_Transmit(uint8_t* data, uint8_t len) {
 
     if (loraMode != LORA_STANDBY) {
         // Set to Standby Mode
-        regData = Lora_Read_Reg(RegOpMode);
-        regData &= (LORA_STANDBY << RegOpMode_Mode_Pos);
-        Lora_Write_Reg(RegOpMode, regData);
-        loraMode = LORA_STANDBY;
+        Lora_Set_Mode(LORA_STANDBY);
     }
 
     // Set Address Pointer to FIFO
-    // regData = Lora_Read_Reg(RegFifoTxBaseAddr);
     Lora_Write_Reg(RegFifoAddrPtr, RegFifo);
 
     // Write data to FIFO
