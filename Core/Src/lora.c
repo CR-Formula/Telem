@@ -49,6 +49,15 @@ static uint8_t Lora_Read_Reg(uint8_t reg);
  */
 static LoRa_Status Lora_Read(uint8_t reg, uint8_t* data, size_t len);
 
+/** 
+ * @brief Set the Mode of the LoRa Module
+ * @note Also updates the global loraMode variable
+ * 
+ * @param mode [LoRa_Mode] Mode to set the module to
+ * @return LoRa_Status
+ */
+static LoRa_Status Lora_Set_Mode(LoRa_Mode mode);
+
 /* Function Implementation --------------------------------------------------*/
 
 static LoRa_Status Lora_Write_Reg(uint8_t reg, uint8_t data) {
@@ -86,17 +95,22 @@ static LoRa_Status Lora_Read(uint8_t reg, uint8_t* data, size_t len) {
     return LORA_OK;
 }
 
+static LoRa_Status Lora_Set_Mode(LoRa_Mode mode) {
+    uint8_t regData = Lora_Read_Reg(RegOpMode);
+    regData &= ~RegOpMode_Mode;
+    regData |= (mode << RegOpMode_Mode_Pos);
+    Lora_Write_Reg(RegOpMode, regData);
+    loraMode = Lora_Read_Reg(RegOpMode) & RegOpMode_Mode;
+    if (loraMode != mode) {
+        return LORA_ERROR;
+    }
+    return LORA_OK;
+}
+
 LoRa_Status Lora_Init() {
     volatile uint8_t regData = 0;
     // Enter Sleep Mode
-    regData = Lora_Read_Reg(RegOpMode);
-    regData &= ~RegOpMode_Mode;
-    Lora_Write_Reg(RegOpMode, regData);
-    // Check for Sleep Mode
-    if ((Lora_Read_Reg(RegOpMode) & RegOpMode_Mode) != LORA_SLEEP) {
-        return LORA_ERROR;
-    }
-    loraMode = LORA_SLEEP;
+    Lora_Set_Mode(LORA_SLEEP);
 
     // Set Long Range Mode (LoRa)
     regData = Lora_Read_Reg(RegOpMode);
@@ -105,6 +119,11 @@ LoRa_Status Lora_Init() {
     if (!(Lora_Read_Reg(RegOpMode) & RegOpMode_LongRangeMode)) {
         return LORA_ERROR;
     }
+
+    // Set Access to HF Test Registers
+    regData = Lora_Read_Reg(RegOpMode);
+    regData &= ~RegOpMode_LowFrequencyModeOn;
+    Lora_Write_Reg(RegOpMode, regData);
     
     // Calculate and set Carrier Frequency
     uint32_t FreqStep = RFM95_OSC_FREQ / 524288;
@@ -118,23 +137,15 @@ LoRa_Status Lora_Init() {
 
     // Set Power to 20 dBm
     Lora_Write_Reg(RegPaConfig, RegPaConfig_20dBm);
+    Lora_Write_Reg(RegPaDac, RegPaDac_20dBm);
 
-    // Set Bandwidth to 500 kHz and Coding Rate to 4/5
-    regData = Lora_Read_Reg(RegModemConfig1);
-    regData &= ~RegModemConfig1_Bw & ~RegModemConfig1_CodingRate;
-    regData |= (0x9 << RegModemConfig1_Bw_Pos) | (0x1 << RegModemConfig1_CodingRate_Pos);
-    Lora_Write_Reg(RegModemConfig1, regData);
-
-    // Set Spreading Factor to 6
-    regData = Lora_Read_Reg(RegModemConfig2);
-    regData |= (0x6 << RegModemConfig2_SpreadingFactor_Pos);
-    Lora_Write_Reg(RegModemConfig2, regData);
+    // Defaults to 4/5 Coding Rate, 500 kHz Bandwidth, SF 6
+    Lora_Set_CodingRate(LORA_CR_4_5);
+    Lora_Set_BW(LORA_BW_500);
+    Lora_Set_SF(LORA_SF_6);
 
     // Set the Module to Standby Mode
-    regData = Lora_Read_Reg(RegOpMode);
-    regData |= (LORA_STANDBY << RegOpMode_Mode_Pos);
-    Lora_Write_Reg(RegOpMode, regData);
-    loraMode = LORA_STANDBY;
+    Lora_Set_Mode(LORA_STANDBY);
 
     return LORA_OK;
 }
@@ -192,12 +203,11 @@ LoRa_Status Lora_Set_CodingRate(uint8_t cr) {
 }
 
 LoRa_Status Lora_Transmit(uint8_t* data, uint8_t len) {
-    if (len == 0 || len == NULL || len > 255) {
+    if (len == 0 || len == NULL || len > LORA_MAX_PAYLOAD_LEN || data == NULL) {
         return LORA_ERROR;
     }
 
     uint8_t regData = 0;
-    uint8_t count = 0;
 
     if (loraMode != LORA_STANDBY) {
         // Set to Standby Mode
@@ -207,38 +217,25 @@ LoRa_Status Lora_Transmit(uint8_t* data, uint8_t len) {
         loraMode = LORA_STANDBY;
     }
 
-    // Set Address Pointer to TX FIFO and payload length
-    regData = Lora_Read_Reg(RegFifoTxBaseAddr);
-    Lora_Write_Reg(RegFifoAddrPtr, regData);
-    Lora_Write_Reg(RegPayloadLength, len);
+    // Set Address Pointer to FIFO
+    // regData = Lora_Read_Reg(RegFifoTxBaseAddr);
+    Lora_Write_Reg(RegFifoAddrPtr, RegFifo);
 
     // Write data to FIFO
     Lora_Write(RegFifo, data, len);
 
+    // Set Payload Length
+    Lora_Write_Reg(RegPayloadLength, len);
+
     // Set to TX Mode
-    regData = Lora_Read_Reg(RegOpMode);
-    regData &= ~(RegOpMode_Mode);
-    regData |= (LORA_TX << RegOpMode_Mode_Pos);
-    Lora_Write_Reg(RegOpMode, regData);
-    loraMode = LORA_TX;
-    
+    Lora_Set_Mode(LORA_TX);
+
     // Check for TX Done
-    while(count < LORA_RETRY) {
+    while(1) {
         regData = Lora_Read_Reg(RegIrqFlags);
         if (regData & RegIrqFlags_TxDone) {
-            // Set to Standby Mode
-            regData = Lora_Read_Reg(RegOpMode);
-            regData &= ~(RegOpMode_Mode);
-            regData |= (LORA_STANDBY << RegOpMode_Mode_Pos);
-            Lora_Write_Reg(RegOpMode, regData);
-            loraMode = LORA_STANDBY;
             break;
         }
-        count++;
-    }
-
-    if (count >= LORA_RETRY) {
-        return LORA_TX_ERROR;
     }
 
     return LORA_OK;

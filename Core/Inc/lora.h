@@ -12,18 +12,19 @@
 #include "gpio.h"
 
 /* Macros -------------------------------------------------------------------*/
-#define LORA_FREQ           915000000 // 915MHz
-#define RFM95_OSC_FREQ      32000000 // 32MHz
-#define LORA_SPI            (SPI_TypeDef*)SPI2
-#define LORA_GPIO           (GPIO_TypeDef*)GPIOB
-#define LORA_CS             12 // PB12 for CS
-#define LORA_WRITE          0x80 // Mask for write command
+#define LORA_FREQ                   915000000 // 915MHz
+#define RFM95_OSC_FREQ              32000000 // 32MHz
+#define LORA_SPI                    (SPI_TypeDef*)SPI2
+#define LORA_GPIO                   (GPIO_TypeDef*)GPIOB
+#define LORA_CS                     12 // PB12 for CS
+#define LORA_WRITE                  0x80 // Mask for write command
 
-#define LORA_IO_PORT        (GPIO_TypeDef*)GPIOA
-#define LORA_RST            8 // PA8 for Reset
-#define LORA_INT            9 // PA9 for Interrupt
+#define LORA_IO_PORT                (GPIO_TypeDef*)GPIOA
+#define LORA_RST                    8 // PA8 for Reset
+#define LORA_INT                    9 // PA9 for Interrupt
 
-#define LORA_RETRY          5 // Number of Retries for LoRa Operations
+#define LORA_MAX_PAYLOAD_LEN        255 // Max Length of LoRa Packet
+#define LORA_RETRY                  5 // Number of Retries for LoRa Operations
 
 /* Structs and Enums --------------------------------------------------------*/
 typedef enum {

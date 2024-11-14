@@ -348,3 +348,10 @@
 #define RegModemConfig3_MobileNode_Pos                  (3u)
 #define RegModemConfig3_MobileNode_Msk                  (0x1u << RegModemConfig3_MobileNode_Pos)
 #define RegModemConfig3_MobileNode                      RegModemConfig3_MobileNode_Msk
+
+/*********************  RegPaDac  **********************/
+#define RegPaDac_PaDac_Pos                              (0u)
+#define RegPaDac_PaDac_Msk                              (0x7u << RegPaDac_PaDac_Pos)
+#define RegPaDac_PaDac                                  RegPaDac_PaDac_Msk
+
+#define RegPaDac_20dBm                                  0x7
