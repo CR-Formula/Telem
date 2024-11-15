@@ -126,20 +126,14 @@ LoRa_Status Lora_Init() {
 
     // Set the Module to Standby Mode
     Lora_Set_Mode(LORA_STANDBY);
-
-    // Set Access to HF Test Registers
-    regData = Lora_Read_Reg(RegOpMode);
-    regData &= ~RegOpMode_LowFrequencyModeOn;
-    Lora_Write_Reg(RegOpMode, regData);
     
     // Calculate and set Carrier Frequency
-    uint32_t FreqStep = RFM95_OSC_FREQ / 524288;
-    uint32_t F = LORA_FREQ / FreqStep;
-    regData = ((F >> 16) & 0xFF); // MSB
+    // To use a different frequency, change the LORA_FREQ macro
+    regData = (((uint32_t)RFM95_Frf >> 16) & 0xFF); // MSB
     Lora_Write_Reg(RegFrfMsb, regData);
-    regData = ((F >> 8) & 0xFF); // MID
+    regData = (((uint32_t)RFM95_Frf >> 8) & 0xFF); // MID
     Lora_Write_Reg(RegFrfMid, regData);
-    regData = ((F >> 0) & 0xFF); // LSB
+    regData = (((uint32_t)RFM95_Frf >> 0) & 0xFF); // LSB
     Lora_Write_Reg(RegFrfLsb, regData);
 
     // Set Power to 20 dBm
@@ -156,7 +150,7 @@ LoRa_Status Lora_Init() {
     regData &= ~RegModemConfig1_ImplicitHeaderModeOn;
     Lora_Write_Reg(RegModemConfig1, regData);
 
-    Lora_Set_CRC(true);
+    // Lora_Set_CRC(true);
 
     return LORA_OK;
 }
@@ -247,7 +241,8 @@ LoRa_Status Lora_Transmit(uint8_t* data, uint8_t len) {
     // Set Payload Length
     Lora_Write_Reg(RegPayloadLength, len);
 
-    // Set to TX Mode
+    // Clear TXDone and Set to TX Mode
+    Lora_Write_Reg(RegIrqFlags, RegIrqFlags_TxDone);
     Lora_Set_Mode(LORA_TX);
 
     // Check for TX Done

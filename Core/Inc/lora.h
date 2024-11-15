@@ -14,8 +14,9 @@
 #include <stdbool.h>
 
 /* Macros -------------------------------------------------------------------*/
-#define LORA_FREQ                   915000000 // 915MHz
-#define RFM95_OSC_FREQ              32000000.0 // 32MHz
+#define LORA_FREQ                   915000000.0 // 915MHz
+#define RFM95_XOSC_FREQ             32000000.0 // 32MHz
+#define RFM95_Frf                   ((LORA_FREQ * 524288) / RFM95_XOSC_FREQ) // Frequency Calculation
 #define LORA_SPI                    (SPI_TypeDef*)SPI2
 #define LORA_GPIO                   (GPIO_TypeDef*)GPIOB
 #define LORA_CS                     12 // PB12 for CS
