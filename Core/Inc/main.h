@@ -41,6 +41,8 @@ extern "C" {
 #include "can.h"
 #include "gps.h"
 #include "adc.h"
+#include "timer.h"
+#include "uart.h"
 
 /* Macros  ------------------------------------------------------------------*/
 #define STATUS_LED_PIN          13
@@ -79,24 +81,18 @@ void Error_Handler(void);
 
 /**
  * @brief Thread for blinking the status led
- * 
- * @param argument 
  */
 void Status_LED();
 
 /**
  * @brief Thread for handling CAN communication
  * @note TODO: Implement CAN Task
- * 
- * @param argument 
  */
 void CAN_Task();
 
 /**
  * @brief Thread for handling GPS communication
  * @note TODO: Implement GPS Task
- * 
- * @param argument 
  */
 void GPS_Task();
 
@@ -105,6 +101,12 @@ void GPS_Task();
  * @note pulls values from DMA buffer and calculates Sensor values
  */
 void ADC_Task();
+
+/**
+ * @brief Thread for collecting system statistics
+ * @note For Debug only
+ */
+void Collect_Stats();
 
 /**
  * @brief Main Function to start FreeRTOS and initialize peripherals

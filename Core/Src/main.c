@@ -26,12 +26,14 @@ void main() {
   CAN_Filters_Init();
   CAN_Start();
   DMA_ADC1_Init(&ADC_Buffer);
+  USART3_Init();
 
   // Create FreeRTOS Tasks
   Task_Status &= xTaskCreate(Status_LED, "Status_Task", 128, NULL, 2, NULL);
   Task_Status &= xTaskCreate(CAN_Task, "CAN_Task", 256, NULL, 2, NULL);
   Task_Status &= xTaskCreate(GPS_Task, "GPS_Task", 512, NULL, 1, NULL);
   Task_Status &= xTaskCreate(ADC_Task, "ADC_Task", 128, NULL, 1, NULL);
+  Task_Status &= xTaskCreate(Collect_Stats, "Stats_Task", 512, NULL, 1, NULL);
 
   if (Task_Status != pdPASS) {
     Error_Handler();
@@ -113,6 +115,18 @@ void ADC_Task() {
     telemetry.FRTemp = ADC_Buffer[2];
     telemetry.RRTemp = ADC_Buffer[3];
     vTaskDelayUntil(&xLastWakeTime, ADCFrequency); 
+  }
+}
+
+void Collect_Stats() {
+  const TickType_t StatsFrequency = 1000;
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+  uint8_t StatsBuffer[64*5];
+
+  while(1) {
+    vTaskGetRunTimeStats(&StatsBuffer);
+    send_String(USART3, &StatsBuffer);
+    vTaskDelayUntil(&xLastWakeTime, StatsFrequency);
   }
 }
 
