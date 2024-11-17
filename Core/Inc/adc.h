@@ -8,6 +8,8 @@
 
 #include "stm32f415xx.h"
 
+#define ADC_RESOLUTION      4096
+
 /**
  * @brief Initialize ADC1
  * @note Sets up 16 conversions for all 16 channels

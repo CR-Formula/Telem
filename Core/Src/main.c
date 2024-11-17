@@ -110,10 +110,10 @@ void ADC_Task() {
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while(1) {
-    telemetry.FRPot = ADC_Buffer[0];
-    telemetry.RRPot = ADC_Buffer[1];
-    telemetry.FRTemp = ADC_Buffer[2];
-    telemetry.RRTemp = ADC_Buffer[3];
+    telemetry.FRPot = (ADC_Buffer[0] / ADC_RESOLUTION) * SUS_POT_TRAVEL;
+    telemetry.RRPot = (ADC_Buffer[1] / ADC_RESOLUTION) * SUS_POT_TRAVEL;
+    telemetry.FRTemp = (ADC_Buffer[2] / ADC_RESOLUTION) * THERMOCOUPLE_CONVERSION;
+    telemetry.RRTemp = (ADC_Buffer[3] / ADC_RESOLUTION) * THERMOCOUPLE_CONVERSION;
     vTaskDelayUntil(&xLastWakeTime, ADCFrequency); 
   }
 }

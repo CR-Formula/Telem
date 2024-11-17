@@ -45,8 +45,10 @@ extern "C" {
 #include "uart.h"
 
 /* Macros  ------------------------------------------------------------------*/
-#define STATUS_LED_PIN          13
-#define GPS_ADDR                0x42
+#define STATUS_LED_PIN              13
+#define GPS_ADDR                    0x42
+#define SUS_POT_TRAVEL              50
+#define THERMOCOUPLE_CONVERSION     100
 
 /* Data Structures  ---------------------------------------------------------*/
 typedef struct {
