@@ -30,3 +30,20 @@ void TIM2_Init() {
   
   TIM2->CR1 |= TIM_CR1_CEN; // Enable Timer
 }
+
+void Timer_Stat_Init() {
+  RCC->APB1ENR |= RCC_APB1ENR_TIM2EN; // Enable TIM2 Clock
+  
+  TIM2->CR1 &= ~TIM_CR1_CEN; // Disable Timer
+  // Count up and no clock division
+  TIM2->CR1 &= ~TIM_CR1_DIR & ~TIM_CR1_CKD;
+
+  TIM2->PSC = ((SystemCoreClock / 1000000) - 1); // Set Prescaler to 83 (1MHz)
+  TIM2->ARR = 0xFFFFFFFF; // Set Auto Reload Register to max
+
+  TIM2->CR1 |= TIM_CR1_CEN; // Enable Timer
+}
+
+uint32_t Get_Timer_Count() {
+  return TIM2->CNT;
+}

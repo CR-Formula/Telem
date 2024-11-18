@@ -10,6 +10,7 @@
 
 /* Global Variables ---------------------------------------------------------*/
 Telemetry telemetry;
+uint16_t ADC_Buffer[16];
 
 /* Function Calls -----------------------------------------------------------*/
 void main() {
@@ -24,11 +25,17 @@ void main() {
   CAN1_Init();
   CAN_Filters_Init();
   CAN_Start();
+  DMA_ADC1_Init(&ADC_Buffer);
+  USART3_Init();
 
   // Create FreeRTOS Tasks
   Task_Status &= xTaskCreate(Status_LED, "Status_Task", 128, NULL, 2, NULL);
   Task_Status &= xTaskCreate(CAN_Task, "CAN_Task", 256, NULL, 2, NULL);
   Task_Status &= xTaskCreate(GPS_Task, "GPS_Task", 512, NULL, 1, NULL);
+  Task_Status &= xTaskCreate(ADC_Task, "ADC_Task", 128, NULL, 1, NULL);
+#ifdef DEBUG
+  Task_Status &= xTaskCreate(Collect_Stats, "Stats_Task", 512, NULL, 1, NULL);
+#endif
 
   if (Task_Status != pdPASS) {
     Error_Handler();
@@ -99,6 +106,33 @@ void GPS_Task() {
     vTaskDelayUntil(&xLastWakeTime, GPSFrequency); // 25Hz rate = 40ms period
   }
 }
+
+void ADC_Task() {
+  const TickType_t ADCFrequency = 10; // 100Hz
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+
+  while(1) {
+    telemetry.FRPot = (ADC_Buffer[0] / ADC_RESOLUTION) * SUS_POT_TRAVEL;
+    telemetry.RRPot = (ADC_Buffer[1] / ADC_RESOLUTION) * SUS_POT_TRAVEL;
+    telemetry.FRTemp = (ADC_Buffer[2] / ADC_RESOLUTION) * THERMOCOUPLE_CONVERSION;
+    telemetry.RRTemp = (ADC_Buffer[3] / ADC_RESOLUTION) * THERMOCOUPLE_CONVERSION;
+    vTaskDelayUntil(&xLastWakeTime, ADCFrequency); 
+  }
+}
+
+#ifdef DEBUG
+void Collect_Stats() {
+  const TickType_t StatsFrequency = 1000;
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+  uint8_t StatsBuffer[64*5];
+
+  while(1) {
+    vTaskGetRunTimeStats(&StatsBuffer);
+    send_String(USART3, &StatsBuffer);
+    vTaskDelayUntil(&xLastWakeTime, StatsFrequency);
+  }
+}
+#endif
 
 void Error_Handler() {
   Set_Pin(GPIOC, STATUS_LED_PIN);

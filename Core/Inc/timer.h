@@ -14,3 +14,16 @@
  * @note Timer runs at fCK_PSC / (PSC + 1)
  */
 void TIM2_Init();
+
+/**
+ * @brief Configure Timer for Run Time Stats
+ * 
+ */
+void Timer_Stat_Init();
+
+/**
+ * @brief Get Timer Counter Value
+ * 
+ * @return uint32_t 
+ */
+uint32_t Get_Timer_Count();
