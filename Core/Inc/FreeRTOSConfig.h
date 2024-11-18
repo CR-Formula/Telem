@@ -55,11 +55,13 @@
 #define configCHECK_FOR_STACK_OVERFLOW           2
 
 // FreeRTOS Stats Flags
+#ifdef DEBUG
 #define configGENERATE_RUN_TIME_STATS            1
 #define configUSE_STATS_FORMATTING_FUNCTIONS     1
 #define configSUPPORT_DYNAMIC_ALLOCATION         1
 #define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() Timer_Stat_Init()
 #define portGET_RUN_TIME_COUNTER_VALUE()         Get_Timer_Count()
+#endif
 
 /* Defaults to size_t for backward compatibility, but can be changed
    if lengths will always be less than the number of bytes in a size_t. */
