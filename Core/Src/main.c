@@ -33,7 +33,9 @@ void main() {
   Task_Status &= xTaskCreate(CAN_Task, "CAN_Task", 256, NULL, 2, NULL);
   Task_Status &= xTaskCreate(GPS_Task, "GPS_Task", 512, NULL, 1, NULL);
   Task_Status &= xTaskCreate(ADC_Task, "ADC_Task", 128, NULL, 1, NULL);
+#ifdef DEBUG
   Task_Status &= xTaskCreate(Collect_Stats, "Stats_Task", 512, NULL, 1, NULL);
+#endif
 
   if (Task_Status != pdPASS) {
     Error_Handler();
@@ -118,6 +120,7 @@ void ADC_Task() {
   }
 }
 
+#ifdef DEBUG
 void Collect_Stats() {
   const TickType_t StatsFrequency = 1000;
   TickType_t xLastWakeTime = xTaskGetTickCount();
@@ -129,6 +132,7 @@ void Collect_Stats() {
     vTaskDelayUntil(&xLastWakeTime, StatsFrequency);
   }
 }
+#endif
 
 void Error_Handler() {
   Set_Pin(GPIOC, STATUS_LED_PIN);
