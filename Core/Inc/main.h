@@ -39,13 +39,17 @@ extern "C" {
 
 #include "gpio.h"
 #include "can.h"
-
+#include "adc.h"
+#include "timer.h"
+#include "uart.h"
 #include "gps.h"
 #include "lora.h"
 
 /* Macros  ------------------------------------------------------------------*/
-#define STATUS_LED_PIN          13
-#define GPS_ADDR                0x42
+#define STATUS_LED_PIN              13
+#define GPS_ADDR                    0x42
+#define SUS_POT_TRAVEL              50
+#define THERMOCOUPLE_CONVERSION     100
 
 /* Data Structures  ---------------------------------------------------------*/
 typedef struct {
@@ -80,29 +84,37 @@ void Error_Handler(void);
 
 /**
  * @brief Thread for blinking the status led
- * 
  */
 void Status_LED();
 
 /**
  * @brief Thread for handling CAN communication
  * @note TODO: Implement CAN Task
- * 
  */
 void CAN_Task();
 
 /**
  * @brief Thread for handling GPS communication
  * @note TODO: Implement GPS Task
- * 
  */
 void GPS_Task();
 
 /**
  * @brief Thread for send the Telemetry Struct over LoRa
- * 
  */
 void Lora_Task();
+ 
+ /**
+ * @brief Thread for handling ADC communication
+ * @note pulls values from DMA buffer and calculates Sensor values
+ */
+void ADC_Task();
+
+/**
+ * @brief Thread for collecting system statistics
+ * @note For Debug only
+ */
+void Collect_Stats();
 
 /**
  * @brief Main Function to start FreeRTOS and initialize peripherals
