@@ -111,7 +111,7 @@ static LoRa_Status Lora_Set_Mode(LoRa_Mode mode) {
 LoRa_Status Lora_Init() {
     volatile uint8_t regData = 0;
     // Rising Edge Interrupt on PA9
-    // Calls EXTI9_5_IRQHandler
+    // Calls EXTI9_5_IRQHandler when PA9 gets set high
     GPIO_EXTI_Init(LORA_GPIO, LORA_INT);
     NVIC_SetPriority(EXTI9_5_IRQn, 2);
     NVIC_EnableIRQ(EXTI9_5_IRQn);
@@ -133,6 +133,28 @@ LoRa_Status Lora_Init() {
 
     // Set the Module to Standby Mode
     Lora_Set_Mode(LORA_STANDBY);
+
+    // Set Bandwidth and Coding Rate
+    Lora_Set_CodingRate(LORA_CR_4_5);
+    Lora_Set_BW(LORA_BW_500);
+
+    // Explicit Header Mode
+    regData = Lora_Read_Reg(RegModemConfig1);
+    regData &= ~RegModemConfig1_ImplicitHeaderModeOn;
+    Lora_Write_Reg(RegModemConfig1, regData);
+
+    // Set Spreading Factor, CRC
+    Lora_Set_SF(LORA_SF_7);
+    Lora_Set_CRC(true);
+
+    // Disable Low data rate and set AGC On
+    regData = Lora_Read_Reg(RegModemConfig3);
+    regData &= ~RegModemConfig3_LowDataRateOpt;
+    regData |= RegModemConfig3_AgcAutoOn;
+    Lora_Write_Reg(RegModemConfig3, regData);
+
+    // Set Preamble Length
+    Lora_Set_Preamble(8);
     
     // Calculate and set Carrier Frequency
     // To use a different frequency, change the LORA_FREQ macro
@@ -144,20 +166,8 @@ LoRa_Status Lora_Init() {
     Lora_Write_Reg(RegFrfLsb, regData);
 
     // Set Power to 20 dBm
-    Lora_Write_Reg(RegPaConfig, RegPaConfig_20dBm);
     Lora_Write_Reg(RegPaDac, RegPaDac_20dBm);
-
-    // Defaults to 4/5 Coding Rate, 500 kHz Bandwidth, SF 6
-    Lora_Set_CodingRate(LORA_CR_4_5);
-    Lora_Set_BW(LORA_BW_500);
-    Lora_Set_SF(LORA_SF_6);
-
-    // Explicit Header Mode
-    regData = Lora_Read_Reg(RegModemConfig1);
-    regData &= ~RegModemConfig1_ImplicitHeaderModeOn;
-    Lora_Write_Reg(RegModemConfig1, regData);
-
-    // Lora_Set_CRC(true);
+    Lora_Write_Reg(RegPaConfig, RegPaConfig_20dBm);
 
     return LORA_OK;
 }
@@ -224,6 +234,12 @@ LoRa_Status Lora_Set_CRC(bool crc) {
     }
     Lora_Write_Reg(RegModemConfig2, regData);
     
+    return LORA_OK;
+}
+
+LoRa_Status Lora_Set_Preamble(uint16_t preamble) {
+    Lora_Write_Reg(RegPreambleMsb, ((preamble >> 8) & 0xFF));
+    Lora_Write_Reg(RegPreambleLsb, (preamble & 0xFF));
     return LORA_OK;
 }
 

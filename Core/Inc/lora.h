@@ -132,6 +132,14 @@ LoRa_Status Lora_Set_CodingRate(uint8_t cr);
 LoRa_Status Lora_Set_CRC(bool crc);
 
 /**
+ * @brief Define length of Preamble for LoRa
+ * 
+ * @param preamble [uint16_t] Length of Preamble
+ * @return LoRa_Status 
+ */
+LoRa_Status Lora_Set_Preamble(uint16_t preamble);
+
+/**
  * @brief Send data buffer over LoRa Connection
  * 
  * @param data [uint8_t*] Data buffer to send

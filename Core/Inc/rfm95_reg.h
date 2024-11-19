@@ -345,13 +345,13 @@
 #define RegModemConfig3_AgcAutoOn_Pos                   (2u)
 #define RegModemConfig3_AgcAutoOn_Msk                   (0x1u << RegModemConfig3_AgcAutoOn_Pos)
 #define RegModemConfig3_AgcAutoOn                       RegModemConfig3_AgcAutoOn_Msk
-#define RegModemConfig3_MobileNode_Pos                  (3u)
-#define RegModemConfig3_MobileNode_Msk                  (0x1u << RegModemConfig3_MobileNode_Pos)
-#define RegModemConfig3_MobileNode                      RegModemConfig3_MobileNode_Msk
+#define RegModemConfig3_LowDataRateOpt_Pos              (3u)
+#define RegModemConfig3_LowDataRateOpt_Msk              (0x1u << RegModemConfig3_LowDataRateOpt_Pos)
+#define RegModemConfig3_LowDataRateOpt                  RegModemConfig3_LowDataRateOpt_Msk
 
 /*********************  RegPaDac  **********************/
 #define RegPaDac_PaDac_Pos                              (0u)
 #define RegPaDac_PaDac_Msk                              (0x7u << RegPaDac_PaDac_Pos)
 #define RegPaDac_PaDac                                  RegPaDac_PaDac_Msk
 
-#define RegPaDac_20dBm                                  0x7
+#define RegPaDac_20dBm                                  0x07
