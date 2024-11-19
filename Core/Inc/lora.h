@@ -97,7 +97,7 @@ LoRa_Status Lora_Init();
  * @param sf [uint8_t] Spreading Factor from 6-12
  * @return LoRa_Status
  */
-LoRa_Status Lora_Set_SF(uint8_t sf);
+LoRa_Status Lora_Set_SF(LoRa_SF sf);
 
 /**
  * @brief Set the Bandwidth for LoRa
@@ -105,7 +105,7 @@ LoRa_Status Lora_Set_SF(uint8_t sf);
  * @param bw [uint8_t] Bandwidth in kHz
  * @return LoRa_Status
  */
-LoRa_Status Lora_Set_BW(uint8_t bw);
+LoRa_Status Lora_Set_BW(LoRa_BW bw);
 
 /**
  * @brief Set the TX Power for LoRa
@@ -121,7 +121,7 @@ LoRa_Status Lora_Set_Power(uint8_t power);
  * @param cr [uint8_t] Coding Rate
  * @return LoRa_Status 
  */
-LoRa_Status Lora_Set_CodingRate(uint8_t cr);
+LoRa_Status Lora_Set_CodingRate(LoRa_CR cr);
 
 /**
  * @brief Set or clear the CRC bit in the RegModemConfig2 register

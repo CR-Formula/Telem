@@ -172,7 +172,7 @@ LoRa_Status Lora_Init() {
     return LORA_OK;
 }
 
-LoRa_Status Lora_Set_SF(uint8_t sf) {
+LoRa_Status Lora_Set_SF(LoRa_SF sf) {
     // Check input range
     if (sf < LORA_SF_6) {
         sf = LORA_SF_6;
@@ -190,7 +190,7 @@ LoRa_Status Lora_Set_SF(uint8_t sf) {
     return LORA_OK;
 }
 
-LoRa_Status Lora_Set_BW(uint8_t bw) {
+LoRa_Status Lora_Set_BW(LoRa_BW bw) {
     // Check input range
     if (bw < LORA_BW_7_8) {
         bw = LORA_BW_7_8;
@@ -207,7 +207,7 @@ LoRa_Status Lora_Set_BW(uint8_t bw) {
     return LORA_OK;
 }
 
-LoRa_Status Lora_Set_CodingRate(uint8_t cr) {
+LoRa_Status Lora_Set_CodingRate(LoRa_CR cr) {
     // Check input range
     if (cr < LORA_CR_4_5) {
         cr = LORA_CR_4_5;
