@@ -37,7 +37,10 @@ extern "C" {
 
 #include <stdint.h>
 
-#include "gpio.h"
+#ifndef GPIO_H
+    #define GPIO_H
+    #include "gpio.h"
+#endif
 #include "can.h"
 #include "adc.h"
 #include "timer.h"

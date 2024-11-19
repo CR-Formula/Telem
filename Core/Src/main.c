@@ -171,3 +171,10 @@ void Error_Handler() {
   Set_Pin(GPIOC, STATUS_LED_PIN);
   while(1);
 }
+
+void EXTI9_5_IRQHandler() {
+  if (EXTI->PR & (0x1 << 9)) {
+    EXTI->PR |= (0x1 << 9); // Clear the status bit
+    // Set Flag for Lora Recv
+  }
+}

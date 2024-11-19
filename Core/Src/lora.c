@@ -9,6 +9,7 @@
 #include "lora.h"
 
 LoRa_Mode loraMode = LORA_STANDBY; // Module inits to Standby Mode
+uint8_t loraRecvFlag = 0;
 
 /* Static Functions ---------------------------------------------------------*/
 
@@ -109,6 +110,12 @@ static LoRa_Status Lora_Set_Mode(LoRa_Mode mode) {
 
 LoRa_Status Lora_Init() {
     volatile uint8_t regData = 0;
+    // Rising Edge Interrupt on PA9
+    // Calls EXTI9_5_IRQHandler
+    GPIO_EXTI_Init(LORA_GPIO, LORA_INT);
+    NVIC_SetPriority(EXTI9_5_IRQn, 2);
+    NVIC_EnableIRQ(EXTI9_5_IRQn);
+
     // Enter Sleep Mode
     Lora_Set_Mode(LORA_SLEEP);
 
@@ -256,6 +263,7 @@ LoRa_Status Lora_Transmit(uint8_t* data, uint8_t len) {
     return LORA_OK;
 }
 
-LoRa_Status Lora_Receive(uint8_t* data, uint8_t len) {
+LoRa_Status Lora_Receive(uint8_t* data, uint8_t* len) {
+
     return LORA_OK;
 }

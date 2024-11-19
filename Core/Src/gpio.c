@@ -6,7 +6,7 @@
 * @brief   Basic GPIO Driver
 ***********************************************/
 
-#include "stm32f415xx.h"
+#include "gpio.h"
 
 /**
  * @brief Initialize the LED Pins
@@ -34,6 +34,45 @@ void GPIO_Init() {
   GPIOA->OSPEEDR &= ~GPIO_OSPEEDR_OSPEED8 & ~GPIO_OSPEEDR_OSPEED9;
   GPIOA->OSPEEDR |= (0x1 << GPIO_OSPEEDR_OSPEED8_Pos) | (0x1 << GPIO_OSPEEDR_OSPEED9_Pos);
   GPIOA->PUPDR &= ~GPIO_PUPDR_PUPD8 & ~GPIO_PUPDR_PUPD9;
+}
+
+GPIO_Status GPIO_EXTI_Init(GPIO_TypeDef* GPIO, uint8_t pin) {
+  // Enable SYSCFG Clock
+  RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
+  uint8_t port = 0;
+  if (GPIO == GPIOA) {
+    port = 0;
+  } else if (GPIO == GPIOB) {
+    port = 1;
+  } else if (GPIO == GPIOC) {
+    port = 2;
+  } else if (GPIO == GPIOD) {
+    port = 3;
+  } else if (GPIO == GPIOE) {
+    port = 4;
+  } else if (GPIO == GPIOF) {
+    port = 5;
+  } else if (GPIO == GPIOG) {
+    port = 6;
+  } else if (GPIO == GPIOH) {
+    port = 7;
+  } else if (GPIO == GPIOI) {
+    port = 8;
+  }
+  else {
+    return GPIO_ERROR;
+  }
+
+  // Configure EXTI Line
+  SYSCFG->EXTICR[pin / 4] &= ~(0xF << ((pin % 4) * 4));
+  SYSCFG->EXTICR[pin / 4] |= (port << ((pin % 4) * 4));
+
+  // Configure EXTI Trigger
+  EXTI->IMR |= (0x1 << pin); // Enable Interrupt Mask
+  EXTI->RTSR |= (0x1 << pin); // Enable Rising Edge Trigger
+  EXTI->FTSR &= ~(0x1 << pin); // Disable Falling Edge Trigger
+
+  return GPIO_OK;
 }
 
 /**

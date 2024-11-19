@@ -9,7 +9,10 @@
 #include "stm32f415xx.h"
 #include "spi.h"
 #include "rfm95_reg.h"
-#include "gpio.h"
+#ifndef GPIO_H
+    #define GPIO_H
+    #include "gpio.h"
+#endif
 
 #include <stdbool.h>
 
@@ -143,4 +146,4 @@ LoRa_Status Lora_Transmit(uint8_t* data, uint8_t len);
  * @param len [uint8_t] Length of data
  * @return LoRa_Status
  */
-LoRa_Status Lora_Receive(uint8_t* data, uint8_t len);
+LoRa_Status Lora_Receive(uint8_t* data, uint8_t* len);
