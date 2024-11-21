@@ -62,9 +62,10 @@ static LoRa_Status Lora_Set_Mode(LoRa_Mode mode);
 /* Function Implementation --------------------------------------------------*/
 
 static LoRa_Status Lora_Write_Reg(uint8_t reg, uint8_t data) {
-    uint8_t txData[2] = {reg | LORA_WRITE, data};
+    reg |= LORA_WRITE;
     Clear_Pin(LORA_GPIO, LORA_CS);
-    SPI_Transmit(LORA_SPI, txData, sizeof(txData));
+    SPI_Transmit(LORA_SPI, &reg, 1);
+    SPI_Transmit(LORA_SPI, &data, 1);
     Set_Pin(LORA_GPIO, LORA_CS);
     return LORA_OK;
 }
@@ -131,8 +132,8 @@ LoRa_Status Lora_Init() {
     Lora_Write_Reg(RegFifoTxBaseAddr, RegFifo);
     Lora_Write_Reg(RegFifoRxBaseAddr, RegFifo);
 
-    // Set the Module to Standby Mode
-    Lora_Set_Mode(LORA_STANDBY);
+    // Set the Module to Standby Mode and wait for it to enter
+    while (Lora_Set_Mode(LORA_STANDBY) != LORA_OK);
 
     // Set Bandwidth and Coding Rate
     Lora_Set_CodingRate(LORA_CR_4_5);
