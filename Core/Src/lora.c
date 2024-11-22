@@ -281,6 +281,36 @@ LoRa_Status Lora_Transmit(uint8_t* data, uint8_t len) {
 }
 
 LoRa_Status Lora_Receive(uint8_t* data, uint8_t* len) {
+    if (data == NULL || len == NULL) {
+        return LORA_ERROR;
+    }
+
+    uint8_t regData = 0;
+
+    // Set to RX Continuous Mode
+    if (Lora_Set_Mode(LORA_RX_CONTINUOUS) != LORA_OK) {
+        return LORA_ERROR;
+    }
+
+    // Wait for RX Done
+    while (1) {
+        regData = Lora_Read_Reg(RegIrqFlags);
+        if (regData & RegIrqFlags_RxDone) {
+            break;
+        }
+    }
+
+    // Read the length of the received packet
+    *len = Lora_Read_Reg(RegRxNbBytes);
+
+    // Set FIFO address to current RX address
+    Lora_Write_Reg(RegFifoAddrPtr, Lora_Read_Reg(RegFifoRxCurrentAddr));
+
+    // Read data from FIFO
+    Lora_Read(RegFifo, data, *len);
+
+    // Clear RX Done flag
+    Lora_Write_Reg(RegIrqFlags, RegIrqFlags_RxDone);
 
     return LORA_OK;
 }
