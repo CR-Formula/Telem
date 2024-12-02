@@ -75,10 +75,18 @@ CAN_Status CAN_Filters_Init() {
     CAN1->FS1R &= ~CAN_FS1R_FSC_Msk; // Set Filter 0 to 32-bit Scale
     CAN1->FFA1R &= ~CAN_FFA1R_FFA_Msk; // Set Filter 0 to FIFO 0
 
-    CAN1->sFilterRegister[0].FR1 = 0x0UL; // Set Filter 0 ID to 0
+    // Create Filter for ID 0x048
+    CAN1->sFilterRegister[0].FR1 = 0x048UL << CAN_F0R1_FB0_Pos; // Set Filter 0 ID to 0x048
     CAN1->sFilterRegister[0].FR2 = 0x0UL; // Set Filter 0 Mask to 0
 
-    CAN1->FA1R |= CAN_FA1R_FACT_Msk; // Enable Filter 0
+    CAN1->sFilterRegister[1].FR1 = 0x148UL << CAN_F0R1_FB0_Pos; // Set Filter 1 ID to 0x148
+    CAN1->sFilterRegister[1].FR2 = 0x0UL; // Set Filter 1 Mask to 0
+
+    CAN1->sFilterRegister[2].FR1 = 0x548UL << CAN_F0R1_FB0_Pos; // Set Filter 1 ID to 0x148
+    CAN1->sFilterRegister[2].FR2 = 0x0UL; // Set Filter 1 Mask to 0
+
+    // Enable Filters
+    CAN1->FA1R |= CAN_FA1R_FACT | CAN_FA1R_FACT1 | CAN_FA1R_FACT2;
     CAN1->FMR &= ~CAN_FMR_FINIT; // Exit Filter Initialization Mode
     return CAN_OK;
 }
