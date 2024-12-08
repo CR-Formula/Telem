@@ -75,16 +75,16 @@ CAN_Status CAN_Filters_Init() {
     CAN1->FS1R &= ~CAN_FS1R_FSC_Msk ; // Set Filters to Dual 16-bit mode
 
     // Create Filters for IDs and set masks to match IDs
-    CAN1->sFilterRegister[0].FR1 |= 0x048UL << CAN_F0R1_FB5_Pos;
+    CAN1->sFilterRegister[0].FR1 = 0x048 << CAN_F0R1_FB5_Pos;
     CAN1->FFA1R &= ~CAN_FFA1R_FFA0; // Set Filter 0 to FIFO 0
 
-    CAN1->sFilterRegister[0].FR1 |= 0x148UL << CAN_F0R1_FB21_Pos;
+    CAN1->sFilterRegister[0].FR1 |= 0x148 << CAN_F0R1_FB21_Pos;
     CAN1->FFA1R |= CAN_FFA1R_FFA1; // Set Filter 1 to FIFO 1
 
-    CAN1->sFilterRegister[1].FR1 |= 0x248UL << CAN_F0R1_FB9_Pos;
+    CAN1->sFilterRegister[1].FR1 = 0x248 << CAN_F0R1_FB9_Pos;
     CAN1->FFA1R |= CAN_FFA1R_FFA2; // Set Filter 2 to FIFO 1
 
-    CAN1->sFilterRegister[1].FR1 |= 0x548UL << CAN_F0R1_FB21_Pos;
+    CAN1->sFilterRegister[1].FR1 |= 0x548 << CAN_F0R1_FB21_Pos;
     CAN1->FFA1R |= CAN_FFA1R_FFA2; // Set Filter 2 to FIFO 1
 
     // Enable Filters

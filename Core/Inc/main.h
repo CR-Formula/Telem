@@ -63,7 +63,8 @@ typedef struct {
   uint16_t Lam;           // Lambda
   uint16_t AirT;          // Air Temp
   uint16_t CoolT;         // Coolant Temp
-  int32_t Speed;         // Vehicle Speed
+  uint16_t Steering;      // Steering Angle 
+  int32_t Speed;          // Vehicle Speed
   uint16_t OilP;          // Oil Pressure
   uint16_t FRTemp;        // Front Right Brake Temp
   uint16_t RRTemp;        // Rear Right Brake Temp
