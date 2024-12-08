@@ -8,6 +8,8 @@
 
 #include "stm32f415xx.h"
 
+#define HSE_VALUE           16000000U // 16MHz External Crystal   
+
 /**
  * @brief Configure the System Clock to 168MHz
  * 

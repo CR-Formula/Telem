@@ -7,43 +7,43 @@
 ***********************************************/
 
 #include "stm32f415xx.h"
+#include <stdint.h>
+#include <stddef.h>
+
+/* Macros -------------------------------------------------------------------*/
+/* Structs and Enums --------------------------------------------------------*/
+typedef enum {
+    SPI_ERROR,
+    SPI_OK,
+} SPI_Status;
+
+/* Function Prototypes ------------------------------------------------------*/
 
 /**
  * @brief Initialize SPI2
- * @note CPOL = 1, CPHA = 0, MSB First, 8-bit Data Frame
+ * @note CPOL = 0, CPHA = 0, MSB First, 8-bit Data Frame
+ * @note Written to be used with RFM95W
  */
 void SPI2_Init();
 
 /**
- * @brief Send a byte over SPI
- * @note Does not handle CS pin
+ * @brief Transmit data over SPI
+ * @note Blocking/Polling Call
  * 
  * @param SPI [SPI_TypeDef*] SPI Peripheral to use
- * @param data [uint8_t] Data to write
- * @param CS [uint8_t] Chip Select Pin
- * @return [uint8_t] Data read from slave shift register
+ * @param data [uint8_t*] Data buffer to send
+ * @param len [size_t] Length of data buffer
+ * @return SPI_Status 
  */
-uint8_t SPI_Write(SPI_TypeDef* SPI, uint8_t data);
+SPI_Status SPI_Transmit(SPI_TypeDef* SPI, uint8_t* data, size_t len);
 
 /**
- * @brief Write a register on a SPI device
- * @note Designed for RFM95W LoRa Module
+ * @brief Receive data over SPI
+ * @note Blocking/Polling Call
  * 
  * @param SPI [SPI_TypeDef*] SPI Peripheral to use
- * @param reg [uint8_t] Register Address
- * @param data [uint8_t] Data to write
- * @param CS [uint8_t] Chip Select Pin
+ * @param buf [uint8_t*] Buffer to read into
+ * @param len [size_t] Length of buffer
+ * @return SPI_Status 
  */
-void SPI_Transmit_Frame(SPI_TypeDef* SPI, uint8_t *buf, uint16_t size, uint8_t CS);
-
-/**
- * @brief Read a register on a SPI device
- * @note Designed for RFM95W LoRa Module
- * TODO: Need to set up read command
- * 
- * @param SPI [SPI_TypeDef*] SPI Peripheral to use
- * @param reg [uint8_t] Register Address
- * @param CS [uint8_t] Chip Select Pin
- * @return uint8_t Register Data
- */
-uint8_t Read_Register(SPI_TypeDef* SPI, uint8_t reg, uint8_t CS);
+SPI_Status SPI_Receive(SPI_TypeDef* SPI, uint8_t* buf, size_t len);

@@ -37,12 +37,16 @@ extern "C" {
 
 #include <stdint.h>
 
-#include "gpio.h"
+#ifndef GPIO_H
+    #define GPIO_H
+    #include "gpio.h"
+#endif
 #include "can.h"
-#include "gps.h"
 #include "adc.h"
 #include "timer.h"
 #include "uart.h"
+#include "gps.h"
+#include "lora.h"
 
 /* Macros  ------------------------------------------------------------------*/
 #define STATUS_LED_PIN              13
@@ -99,6 +103,11 @@ void CAN_Task();
 void GPS_Task();
 
 /**
+ * @brief Thread for send the Telemetry Struct over LoRa
+ */
+void Lora_Task();
+ 
+ /**
  * @brief Thread for handling ADC communication
  * @note pulls values from DMA buffer and calculates Sensor values
  */

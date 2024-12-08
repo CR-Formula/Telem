@@ -16,8 +16,6 @@ uint16_t ADC_Buffer[16];
 void main() {
   uint8_t Task_Status = 1;
 
-  // TODO: Split Init into Peripherals and Devices
-  // TODO: Create Init checks that reruns if failed
   // Initialize Hardware
   Sysclk_168();
   LED_Init();
@@ -25,6 +23,8 @@ void main() {
   CAN1_Init();
   CAN_Filters_Init();
   CAN_Start();
+  SPI2_Init();
+  GPIO_Init();
   DMA_ADC1_Init(&ADC_Buffer);
   USART3_Init();
 
@@ -32,6 +32,7 @@ void main() {
   Task_Status &= xTaskCreate(Status_LED, "Status_Task", 128, NULL, 2, NULL);
   Task_Status &= xTaskCreate(CAN_Task, "CAN_Task", 256, NULL, 2, NULL);
   Task_Status &= xTaskCreate(GPS_Task, "GPS_Task", 512, NULL, 1, NULL);
+  Task_Status &= xTaskCreate(Lora_Task, "Lora_Task", 128, NULL, 2, NULL);
   Task_Status &= xTaskCreate(ADC_Task, "ADC_Task", 128, NULL, 1, NULL);
 #ifdef DEBUG
   Task_Status &= xTaskCreate(Collect_Stats, "Stats_Task", 512, NULL, 1, NULL);
@@ -107,6 +108,38 @@ void GPS_Task() {
   }
 }
 
+void Lora_Task() {
+  LoRa_Status status;
+  uint8_t retryCount = 0;
+  uint8_t TXErrorCounter = 0;
+  const TickType_t LoraFrequency = 1000;
+  uint8_t data[] = {0x01, 0x02, 0x03, 0x04, 0x05};
+  Clear_Pin(LORA_IO_PORT, LORA_RST);
+  vTaskDelay(10);
+  Set_Pin(LORA_IO_PORT, LORA_RST);
+  vTaskDelay(100);
+  status = Lora_Init();
+
+  if (status != LORA_OK && retryCount < LORA_RETRY) {
+    retryCount++;
+    status = Lora_Init();
+  }
+
+  if (retryCount >= LORA_RETRY) {
+    vTaskDelete(NULL);
+  }
+
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+
+  while(1) {
+    status = Lora_Transmit(&data, sizeof(data));
+    if (status != LORA_OK) {
+      TXErrorCounter++;
+    }
+    vTaskDelayUntil(&xLastWakeTime, LoraFrequency);
+  }
+}
+
 void ADC_Task() {
   const TickType_t ADCFrequency = 10; // 100Hz
   TickType_t xLastWakeTime = xTaskGetTickCount();
@@ -137,4 +170,11 @@ void Collect_Stats() {
 void Error_Handler() {
   Set_Pin(GPIOC, STATUS_LED_PIN);
   while(1);
+}
+
+void EXTI9_5_IRQHandler() {
+  if (EXTI->PR & (0x1 << 9)) {
+    EXTI->PR |= (0x1 << 9); // Clear the status bit
+    // Set Flag for Lora Recv
+  }
 }
