@@ -21,29 +21,39 @@
 #define RegFifoAddrPtr                                  (0x0Du)
 #define RegFifoTxBaseAddr                               (0x0Eu)
 #define RegFifoRxBaseAddr                               (0x0Fu)
-#define RegIrqFlags                                     (0x10u)
-#define RegIrqFlagsMask                                 (0x11u)
-#define RegFreqIfMsb                                    (0x12u)
-#define RegFreqIFLsb                                    (0x13u)
-#define RegSymbTimeoutMsb                               (0x14u)
-#define RegSymbTimeoutLsb                               (0x15u)
-#define RegTxCfg                                        (0x16u)
-#define RegPayloadLength                                (0x17u)
-#define RegPreambleMsb                                  (0x18u)
-#define RegPreambleLsb                                  (0x19u)
-#define RegModulationCfg                                (0x1Au)
-#define RegRfMode                                       (0x1Bu)
-#define RegHopPeriod                                    (0x1Cu)
-#define RegNbRxBytes                                    (0x1Du)
-#define RegRxHeaderInfo                                 (0x1Eu)
-#define RegRxHeaderCntValue                             (0x1Fu)
-#define RegRxPacketCntValue                             (0x20u)
-#define RegModemStat                                    (0x21u)
-#define RegPktSnrValue                                  (0x22u)
-#define RegRssiValue                                    (0x23u)
-#define RegPktRssiValue                                 (0x24u)
-#define RegHopChannel                                   (0x25u)
-#define RegRxDataAddr                                   (0x26u)
+#define RegFifoRxCurrentAddr                            (0x10u)
+#define RegRxTimeoutMask                                (0x11u)
+#define RegIrqFlags                                     (0x12u)
+#define RegRxNbBytes                                    (0x13u)
+#define RegRxHeaderCntValueMsb                          (0x14u)
+#define RegRxHeaderCntValueLsb                          (0x15u)
+#define RegRxPacketCntValueMsb                          (0x16u)
+#define RegRxPacketCntValueLsb                          (0x17u)
+#define RegModemStat                                    (0x18u)
+#define RegPktSnrValue                                  (0x19u)
+#define RegPktRssiValue                                 (0x1Au)
+#define RegRssiValue                                    (0x1Bu)
+#define RegHopChannel                                   (0x1Cu)
+#define RegModemConfig1                                 (0x1Du)
+#define RegModemConfig2                                 (0x1Eu)
+#define RegSymbTimeoutLsb                               (0x1Fu)
+#define RegPreambleMsb                                  (0x20u)
+#define RegPreambleLsb                                  (0x21u)
+#define RegPayloadLength                                (0x22u)
+#define RegMaxPayloadLength                             (0x23u)
+#define RegHopPeriod                                    (0x24u)
+#define RegFifoRxByteAddr                               (0x25u)
+#define RegModemConfig3                                 (0x26u)
+#define RegPpmCorrection                                (0x27u)
+#define RegFeiMsb                                       (0x28u)
+#define RegFeiMid                                       (0x29u)
+#define RegFeiLsb                                       (0x2Au)
+#define RegRssiWideband                                 (0x2Cu)
+#define RegDetectOptimize                               (0x31u)
+#define RegInvertIQ                                     (0x33u)
+#define RegDetectionThreshold                           (0x37u)
+#define RegSyncWord                                     (0x39u)
+
 #define RegDioMapping1                                  (0x40u)
 #define RegDioMapping2                                  (0x41u)
 #define RegVersion                                      (0x42u)
@@ -102,6 +112,8 @@
 #define RegPaConfig_PaSelect_Pos                        (7u)
 #define RegPaConfig_PaSelect_Msk                        (0x1u << RegPaConfig_PaSelect_Pos)
 #define RegPaConfig_PaSelect                            RegPaConfig_PaSelect_Msk
+
+#define RegPaConfig_20dBm                               0xFF
 
 /***********************  RegPaRamp  ***********************/
 #define RegPaRamp_PaRamp_Pos                            (0u)
@@ -333,6 +345,13 @@
 #define RegModemConfig3_AgcAutoOn_Pos                   (2u)
 #define RegModemConfig3_AgcAutoOn_Msk                   (0x1u << RegModemConfig3_AgcAutoOn_Pos)
 #define RegModemConfig3_AgcAutoOn                       RegModemConfig3_AgcAutoOn_Msk
-#define RegModemConfig3_MobileNode_Pos                  (3u)
-#define RegModemConfig3_MobileNode_Msk                  (0x1u << RegModemConfig3_MobileNode_Pos)
-#define RegModemConfig3_MobileNode                      RegModemConfig3_MobileNode_Msk
+#define RegModemConfig3_LowDataRateOpt_Pos              (3u)
+#define RegModemConfig3_LowDataRateOpt_Msk              (0x1u << RegModemConfig3_LowDataRateOpt_Pos)
+#define RegModemConfig3_LowDataRateOpt                  RegModemConfig3_LowDataRateOpt_Msk
+
+/*********************  RegPaDac  **********************/
+#define RegPaDac_PaDac_Pos                              (0u)
+#define RegPaDac_PaDac_Msk                              (0x7u << RegPaDac_PaDac_Pos)
+#define RegPaDac_PaDac                                  RegPaDac_PaDac_Msk
+
+#define RegPaDac_20dBm                                  0x07

@@ -16,8 +16,6 @@ uint16_t ADC_Buffer[16];
 void main() {
   uint8_t Task_Status = 1;
 
-  // TODO: Split Init into Peripherals and Devices
-  // TODO: Create Init checks that reruns if failed
   // Initialize Hardware
   Sysclk_168();
   LED_Init();
@@ -25,16 +23,19 @@ void main() {
   CAN1_Init();
   CAN_Filters_Init();
   CAN_Start();
+  SPI2_Init();
+  GPIO_Init();
   DMA_ADC1_Init(&ADC_Buffer);
   USART3_Init();
 
   // Create FreeRTOS Tasks
-  Task_Status &= xTaskCreate(Status_LED, "Status_Task", 128, NULL, 2, NULL);
-  Task_Status &= xTaskCreate(CAN_Task, "CAN_Task", 256, NULL, 2, NULL);
-  Task_Status &= xTaskCreate(GPS_Task, "GPS_Task", 512, NULL, 1, NULL);
-  Task_Status &= xTaskCreate(ADC_Task, "ADC_Task", 128, NULL, 1, NULL);
+  Task_Status &= xTaskCreate(Status_LED, "Status_Task", 128, NULL, LED_PRIORITY, NULL);
+  Task_Status &= xTaskCreate(CAN_Task, "CAN_Task", 256, NULL, CAN_PRIORITY, NULL);
+  // Task_Status &= xTaskCreate(GPS_Task, "GPS_Task", 512, NULL, GPS_PRIORITY, NULL);
+  Task_Status &= xTaskCreate(Lora_Task, "Lora_Task", 512, NULL, LORA_PRIORITY, NULL);
+  Task_Status &= xTaskCreate(ADC_Task, "ADC_Task", 128, NULL, ADC_PRIORITY, NULL);
 #ifdef DEBUG
-  Task_Status &= xTaskCreate(Collect_Stats, "Stats_Task", 512, NULL, 1, NULL);
+  Task_Status &= xTaskCreate(Collect_Stats, "Stats_Task", 512, NULL, STATS_PRIORITY, NULL);
 #endif
 
   if (Task_Status != pdPASS) {
@@ -57,24 +58,36 @@ void Status_LED() {
 }
 
 void CAN_Task() {
-  CAN_Frame tFrame = {
-    .id = 0x048,
-    .data = {8, 6, 5, 3, 2, 4, 1, 5},
-    .dlc = 8,
-    .rtr = CAN_RTR_Data
-  };
   volatile CAN_Frame rFrame;
   volatile CAN_Status Receive;
-  const TickType_t CANFrequency = 1000;
 
+  const TickType_t CANFrequency = 50; // 20Hz
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while(1) {
-    CAN_Transmit(CAN1, &tFrame);
     Receive = CAN_Receive(CAN1, &rFrame);
     if (Receive == CAN_OK) {
-      telemetry.RPM = rFrame.data[0] << 8 | rFrame.data[1];
-      // TODO: Implement CAN Task
+      switch (rFrame.id)
+      {
+      case 0x048:
+        telemetry.RPM = rFrame.data[0] + rFrame.data[1] << 8;
+        telemetry.TPS = rFrame.data[2] + rFrame.data[3] << 8;
+        telemetry.FOT = rFrame.data[4] + rFrame.data[5] << 8;
+        telemetry.IA = rFrame.data[6] + rFrame.data[7] << 8;
+        break;
+      case 0x148:
+        telemetry.Lam = rFrame.data[4] + rFrame.data[5] << 8;
+        break;
+      case 0x248:
+        telemetry.OilP = rFrame.data[6] + rFrame.data[7] << 8;
+        break;
+      case 0x548:
+        telemetry.AirT = rFrame.data[2] + rFrame.data[3] << 8;
+        telemetry.CoolT = rFrame.data[4] + rFrame.data[5] << 8;
+        break;
+      default:
+        break;
+      }
     }
     vTaskDelayUntil(&xLastWakeTime, CANFrequency);
   }
@@ -84,7 +97,7 @@ void GPS_Task() {
   GPS_Status status;
   volatile GPS_Data data;
   const TickType_t GPSFrequency = 40; // 25Hz
-  vTaskDelay(500); // Delay for GPS Module to Boot
+  vTaskDelay(1000); // Delay for GPS Module to Boot
   status = GPS_Init();
 
   while (status != GPS_OK) {
@@ -116,7 +129,29 @@ void ADC_Task() {
     telemetry.RRPot = (ADC_Buffer[1] / ADC_RESOLUTION) * SUS_POT_TRAVEL;
     telemetry.FRTemp = (ADC_Buffer[2] / ADC_RESOLUTION) * THERMOCOUPLE_CONVERSION;
     telemetry.RRTemp = (ADC_Buffer[3] / ADC_RESOLUTION) * THERMOCOUPLE_CONVERSION;
+    telemetry.Steering = (ADC_Buffer[4] / ADC_RESOLUTION) * 360;
     vTaskDelayUntil(&xLastWakeTime, ADCFrequency); 
+  }
+}
+
+void Lora_Task() {
+  LoRa_Status status;
+
+  Clear_Pin(LORA_IO_PORT, LORA_RST);
+  vTaskDelay(10);
+  Set_Pin(LORA_IO_PORT, LORA_RST);
+  vTaskDelay(100);
+  status = Lora_Init();
+
+  if (status != LORA_OK) {
+    status = Lora_Init();
+  }
+
+  const TickType_t LoraFrequency = 15;
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+
+  while(1) {
+    vTaskDelayUntil(&xLastWakeTime, LoraFrequency);
   }
 }
 
@@ -137,4 +172,11 @@ void Collect_Stats() {
 void Error_Handler() {
   Set_Pin(GPIOC, STATUS_LED_PIN);
   while(1);
+}
+
+void EXTI9_5_IRQHandler() {
+  if (EXTI->PR & (0x1 << 9)) {
+    EXTI->PR |= (0x1 << 9); // Clear the status bit
+    // Set Flag for Lora Recv
+  }
 }

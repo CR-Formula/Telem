@@ -6,96 +6,97 @@
 * @brief   SPI Driver Implementation
 ***********************************************/
 
-#include "stm32f415xx.h"
+#include "spi.h"
 
-/**
- * @brief Initialize SPI2
- * @note CPOL = 1, CPHA = 0, MSB First, 8-bit Data Frame
- */
 void SPI2_Init() {
-  RCC->APB1ENR |= RCC_APB1ENR_SPI2EN; // Enable SPI2 Clock
-  RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN; // Enable GPIOB Clock
+  // Enable Clocks
+  RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN;
+  RCC->APB1ENR |= RCC_APB1ENR_SPI2EN;
 
-  SPI2->CR1 &= ~SPI_CR1_SPE; // Disable SPI
-
+  // GPIO Configuration
   GPIOB->MODER &= ~GPIO_MODER_MODE12 & ~GPIO_MODER_MODE13
-                & ~GPIO_MODER_MODE14 & ~GPIO_MODER_MODE15; // Clear PB13, PB14, and PB15
-  GPIOB->OSPEEDR |= (0x3 << GPIO_OSPEEDR_OSPEED12_Pos)
-                | (0x3 << GPIO_OSPEEDR_OSPEED13_Pos) 
-                | (0x3 << GPIO_OSPEEDR_OSPEED14_Pos) 
-                | (0x3 << GPIO_OSPEEDR_OSPEED15_Pos); // Set PB12, PB13, PB14, and PB15 to High Speed
-  GPIOB->MODER |= (0x1 << GPIO_MODER_MODE12_Pos)
-                | (0x2 << GPIO_MODER_MODE13_Pos) 
-                | (0x2 << GPIO_MODER_MODE14_Pos)
-                | (0x2 << GPIO_MODER_MODE15_Pos); // Set PB12, PB13, PB14, and PB15 to AF
-  GPIOB->AFR[1] |= (0x5 << GPIO_AFRH_AFSEL13_Pos) 
-                | (0x5 << GPIO_AFRH_AFSEL14_Pos) 
-                | (0x5 << GPIO_AFRH_AFSEL15_Pos); // Set PB13, PB14, and PB15 to AF5 (SPI2)
+               & ~GPIO_MODER_MODE14 & ~GPIO_MODER_MODE15;
+  GPIOB->MODER |= (0x01 << GPIO_MODER_MODE12_Pos) | (0x02 << GPIO_MODER_MODE13_Pos)
+               | (0x02 << GPIO_MODER_MODE14_Pos) | (0x02 << GPIO_MODER_MODE15_Pos);
+  GPIOB->AFR[1] |= (0x05 << GPIO_AFRH_AFSEL13_Pos) | (0x05 << GPIO_AFRH_AFSEL14_Pos) 
+                | (0x05 << GPIO_AFRH_AFSEL15_Pos);
+  GPIOB->PUPDR &= ~GPIO_PUPDR_PUPD15;
+  GPIOB->PUPDR |= (0x2 << GPIO_PUPDR_PUPD15);
+  GPIOB->OSPEEDR |= (0x03 << GPIO_OSPEEDR_OSPEED12_Pos) | (0x03 << GPIO_OSPEEDR_OSPEED13_Pos)
+                 | (0x03 << GPIO_OSPEEDR_OSPEED14_Pos) | (0x03 << GPIO_OSPEEDR_OSPEED15_Pos);
+  GPIOB->PUPDR &= ~GPIO_PUPDR_PUPD12 & ~GPIO_PUPDR_PUPD13
+               & ~GPIO_PUPDR_PUPD14 & ~GPIO_PUPDR_PUPD15;
 
-  SPI2->CR1 = (0x4 << SPI_CR1_BR_Pos); // Set Baud Rate to fPCLK/32
+  // Configure SPI
+  SPI2->CR1 &= ~SPI_CR1_BIDIMODE & ~SPI_CR1_CRCEN & ~SPI_CR1_DFF & ~SPI_CR1_RXONLY
+            & ~SPI_CR1_SSM & ~SPI_CR1_LSBFIRST & ~SPI_CR1_CPHA & ~SPI_CR1_CPOL;
+  SPI2->CR1 |= SPI_CR1_MSTR | (0x5 << SPI_CR1_BR_Pos);
+  SPI2->CR2 &= ~SPI_CR2_FRF;
+  SPI2->CR2 |= SPI_CR2_SSOE;
 
-  // Set CPOL = 1, SSM to software, SSI to high
-  SPI2->CR1 |= SPI_CR1_CPOL | SPI_CR1_SSM 
-            | SPI_CR1_SSI; // Set CPOL, DFF, SSM, and SSI
-
-  // Set CPHA = 0, MSB First, Frame Format = Motorola, 8-bit Data Frame
-  SPI2->CR1 &= ~SPI_CR1_CPHA & ~SPI_CR1_LSBFIRST
-            & ~SPI_CR2_FRF & ~SPI_CR1_DFF;
-  
-  SPI2->CR1 |= SPI_CR1_MSTR | SPI_CR1_SPE; // Set Master and Enable
+  // Set NSS High
+  GPIOB->BSRR = GPIO_BSRR_BS12;
 }
 
-/**
- * @brief Send a byte over SPI
- * @note Does not handle CS pin
- * 
- * @param SPI [SPI_TypeDef*] SPI Peripheral to use
- * @param data [uint8_t] Data to write
- * @param CS [uint8_t] Chip Select Pin
- * @return [uint8_t] Data read from slave shift register
- */
-uint8_t SPI_Write(SPI_TypeDef* SPI, uint8_t data) {
-  while (!(SPI->SR & SPI_SR_TXE)); // Wait until TXE is set
-  SPI->DR = data; // Write data to Data Register
-  while (!(SPI->SR & SPI_SR_RXNE)); // Wait until RXNE is set
-  uint8_t Read = SPI->DR; // Read DR to clear RXNE
-  return Read;
-}
-
-/**
- * @brief Write a register on a SPI device
- * @note Designed for RFM95W LoRa Module
- * 
- * @param SPI [SPI_TypeDef*] SPI Peripheral to use
- * @param reg [uint8_t] Register Address
- * @param data [uint8_t] Data to write
- * @param CS [uint8_t] Chip Select Pin
- */
-void SPI_Transmit_Frame(SPI_TypeDef* SPI, uint8_t *buf, uint16_t size, uint8_t CS) {
-  Clear_Pin(GPIOB, CS); // Clear pin B12 Low for CS
-  for (int i = 0; i < size; i++) {
-    SPI_Write(SPI, buf[i]);
+SPI_Status SPI_Transmit(SPI_TypeDef* SPI, uint8_t* data, size_t len) {
+  SPI->CR1 |= SPI_CR1_SPE; // Enable SPI
+  if (SPI->CR1 & SPI_CR1_DFF) { // 16-bit Data Frame
+    while (len > 0) {
+      while (!(SPI->SR & SPI_SR_TXE)); 
+      SPI->DR = *((uint16_t*)data);
+      // increment data pointer by 2 bytes
+      data += sizeof(uint16_t);
+      len--;
+      while (!(SPI->SR & SPI_SR_RXNE));
+      (void)SPI->DR;
+    }
   }
-  Set_Pin(GPIOB, CS); // Set pin B12 High for CS
+  else { // 8-bit Data Frame
+    while (len > 0) {
+      while (!(SPI->SR & SPI_SR_TXE));
+      SPI->DR = *data;
+      data++;
+      len--;
+      while (!(SPI->SR & SPI_SR_RXNE));
+      (void)SPI->DR;
+    }
+  }
+  // Wait for last byte to be sent
+  while (!(SPI->SR & SPI_SR_TXE));
+  while (SPI->SR & SPI_SR_BSY);
+
+  SPI->CR1 &= ~SPI_CR1_SPE; // Disable SPI
+
+  return SPI_OK;
 }
 
-/**
- * @brief Read a register on a SPI device
- * @note Designed for RFM95W LoRa Module
- * TODO: Need to set up read command
- * 
- * @param SPI [SPI_TypeDef*] SPI Peripheral to use
- * @param reg [uint8_t] Register Address
- * @param CS [uint8_t] Chip Select Pin
- * @return uint8_t Register Data
- */
-uint8_t Read_Register(SPI_TypeDef* SPI, uint8_t reg, uint8_t CS) {
-  Clear_Pin(GPIOB, CS); // Clear pin B12 Low for CS
-  while (!(SPI->SR & SPI_SR_TXE)); // Wait until TXE is set
-  // TODO: Need to send read command
-  SPI->DR = reg; // Write data to Data Register
-  while (!(SPI->SR & SPI_SR_RXNE)); // Wait until RXNE is set
-  uint8_t Read = SPI->DR; // Read DR to clear RXNE
-  Set_Pin(GPIOB, CS); // Set pin B12 High for CS
-  return Read;
+SPI_Status SPI_Receive(SPI_TypeDef* SPI, uint8_t* buf, size_t len) {
+  SPI->CR1 |= SPI_CR1_SPE; // Enable SPI
+  if (SPI->CR1 & SPI_CR1_DFF) { // 16-bit Data Frame
+    while (len > 0) {
+      while(!(SPI->SR & SPI_SR_TXE));
+      SPI->DR = 0x0000; // Dummy Data
+      while (!(SPI->SR & SPI_SR_RXNE));
+      *((uint16_t*)buf) = SPI->DR; // Cast to 16-bit
+      // increment data pointer by 2 bytes and len by 2
+      buf += sizeof(uint16_t);
+      len --;
+    }
+  }
+  else { // 8-bit Data Frame
+    for (size_t i = 0; i < len; i++) {
+      while(!(SPI->SR & SPI_SR_TXE));
+      SPI->DR = 0x00; // Dummy Data to generate clk
+      while (!(SPI->SR & SPI_SR_RXNE));
+      buf[i] = SPI->DR;
+    }
+  }
+  // Wait for last byte to be received
+  while(SPI->SR & SPI_SR_RXNE);
+  while (SPI->SR & SPI_SR_BSY);
+
+  SPI->CR1 &= ~SPI_CR1_SPE; // Disable SPI
+
+  return SPI_OK;
 }
+

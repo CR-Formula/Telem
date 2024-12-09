@@ -42,5 +42,5 @@ void Sysclk_168() {
     RCC->CFGR |= RCC_CFGR_SW_PLL; // Set PLL as System Clock
     while (!(RCC->CFGR & RCC_CFGR_SWS_PLL)); // Wait until PLL is System Clock
     
-    SystemCoreClock = 168000000; // Set System Clock to 168MHz
+    SystemCoreClockUpdate(); // Set System Clock to 168MHz
 }

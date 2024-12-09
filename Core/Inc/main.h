@@ -37,18 +37,30 @@ extern "C" {
 
 #include <stdint.h>
 
-#include "gpio.h"
+#ifndef GPIO_H
+    #define GPIO_H
+    #include "gpio.h"
+#endif
 #include "can.h"
-#include "gps.h"
 #include "adc.h"
 #include "timer.h"
 #include "uart.h"
+#include "gps.h"
+#include "lora.h"
 
 /* Macros  ------------------------------------------------------------------*/
 #define STATUS_LED_PIN              13
 #define GPS_ADDR                    0x42
 #define SUS_POT_TRAVEL              50
 #define THERMOCOUPLE_CONVERSION     100
+
+#define LORA_PRIORITY               configMAX_PRIORITIES - 1
+#define CAN_PRIORITY                configMAX_PRIORITIES - 2
+#define GPS_PRIORITY                configMAX_PRIORITIES - 2
+#define ADC_PRIORITY                configMAX_PRIORITIES - 2
+#define LED_PRIORITY                configMAX_PRIORITIES - 5
+#define STATS_PRIORITY              configMAX_PRIORITIES - 5
+
 
 /* Data Structures  ---------------------------------------------------------*/
 typedef struct {
@@ -59,7 +71,8 @@ typedef struct {
   uint16_t Lam;           // Lambda
   uint16_t AirT;          // Air Temp
   uint16_t CoolT;         // Coolant Temp
-  int32_t Speed;         // Vehicle Speed
+  uint16_t Steering;      // Steering Angle 
+  int32_t Speed;          // Vehicle Speed
   uint16_t OilP;          // Oil Pressure
   uint16_t FRTemp;        // Front Right Brake Temp
   uint16_t RRTemp;        // Rear Right Brake Temp
@@ -99,6 +112,11 @@ void CAN_Task();
 void GPS_Task();
 
 /**
+ * @brief Thread for send the Telemetry Struct over LoRa
+ */
+void Lora_Task();
+ 
+ /**
  * @brief Thread for handling ADC communication
  * @note pulls values from DMA buffer and calculates Sensor values
  */
