@@ -29,13 +29,13 @@ void main() {
   USART3_Init();
 
   // Create FreeRTOS Tasks
-  Task_Status &= xTaskCreate(Status_LED, "Status_Task", 128, NULL, 5, NULL);
-  Task_Status &= xTaskCreate(CAN_Task, "CAN_Task", 256, NULL, 2, NULL);
-  Task_Status &= xTaskCreate(GPS_Task, "GPS_Task", 512, NULL, 2, NULL);
-  Task_Status &= xTaskCreate(Lora_Task, "Lora_Task", 128, NULL, 1, NULL);
-  Task_Status &= xTaskCreate(ADC_Task, "ADC_Task", 128, NULL, 2, NULL);
+  Task_Status &= xTaskCreate(Status_LED, "Status_Task", 128, NULL, LED_PRIORITY, NULL);
+  Task_Status &= xTaskCreate(CAN_Task, "CAN_Task", 256, NULL, CAN_PRIORITY, NULL);
+  // Task_Status &= xTaskCreate(GPS_Task, "GPS_Task", 512, NULL, GPS_PRIORITY, NULL);
+  Task_Status &= xTaskCreate(Lora_Task, "Lora_Task", 512, NULL, LORA_PRIORITY, NULL);
+  Task_Status &= xTaskCreate(ADC_Task, "ADC_Task", 128, NULL, ADC_PRIORITY, NULL);
 #ifdef DEBUG
-  Task_Status &= xTaskCreate(Collect_Stats, "Stats_Task", 512, NULL, 5, NULL);
+  Task_Status &= xTaskCreate(Collect_Stats, "Stats_Task", 512, NULL, STATS_PRIORITY, NULL);
 #endif
 
   if (Task_Status != pdPASS) {
@@ -113,9 +113,9 @@ void GPS_Task() {
       telemetry.longGPS = data.longitude;
       telemetry.Speed = data.speed;
     }
-    // else {
-    //   vTaskDelay(100); // Wait for GPS to recover
-    // }
+    else {
+      vTaskDelay(100); // Wait for GPS to recover
+    }
     vTaskDelayUntil(&xLastWakeTime, GPSFrequency); // 25Hz rate = 40ms period
   }
 }
@@ -136,27 +136,21 @@ void ADC_Task() {
 
 void Lora_Task() {
   LoRa_Status status;
-  uint8_t retryCount = 0;
-  uint8_t TXErrorCounter = 0;
-  const TickType_t LoraFrequency = 15;
+
   Clear_Pin(LORA_IO_PORT, LORA_RST);
   vTaskDelay(10);
   Set_Pin(LORA_IO_PORT, LORA_RST);
   vTaskDelay(100);
   status = Lora_Init();
 
-  if (status != LORA_OK && retryCount < LORA_RETRY) {
-    retryCount++;
+  if (status != LORA_OK) {
     status = Lora_Init();
   }
 
+  const TickType_t LoraFrequency = 15;
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while(1) {
-    status = Lora_Transmit(&telemetry, sizeof(telemetry));
-    if (status != LORA_OK) {
-      TXErrorCounter++;
-    }
     vTaskDelayUntil(&xLastWakeTime, LoraFrequency);
   }
 }

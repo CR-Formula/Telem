@@ -54,6 +54,14 @@ extern "C" {
 #define SUS_POT_TRAVEL              50
 #define THERMOCOUPLE_CONVERSION     100
 
+#define LORA_PRIORITY               configMAX_PRIORITIES - 1
+#define CAN_PRIORITY                configMAX_PRIORITIES - 2
+#define GPS_PRIORITY                configMAX_PRIORITIES - 2
+#define ADC_PRIORITY                configMAX_PRIORITIES - 2
+#define LED_PRIORITY                configMAX_PRIORITIES - 5
+#define STATS_PRIORITY              configMAX_PRIORITIES - 5
+
+
 /* Data Structures  ---------------------------------------------------------*/
 typedef struct {
   uint16_t RPM;           // RPM
