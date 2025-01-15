@@ -244,7 +244,7 @@ LoRa_Status Lora_Set_Preamble(uint16_t preamble) {
     return LORA_OK;
 }
 
-LoRa_Status Lora_Transmit(uint8_t* data, uint8_t len) {
+LoRa_Status Lora_Transmit(uint8_t* data, size_t len) {
     if (len == 0 || len == NULL || len > LORA_MAX_PAYLOAD_LEN || data == NULL) {
         return LORA_ERROR;
     }
