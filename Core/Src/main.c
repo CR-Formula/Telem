@@ -138,6 +138,8 @@ void Lora_Task() {
   LoRa_Status status;
 
   uint8_t data[16] = "Hello World!";
+  uint8_t recvData[16];
+  uint8_t recLen;
 
   Clear_Pin(LORA_IO_PORT, LORA_RST);
   vTaskDelay(10);
@@ -154,6 +156,7 @@ void Lora_Task() {
 
   while(1) {
     Lora_Transmit(data, sizeof(data));
+    // Lora_Receive(recvData, recLen);
     vTaskDelayUntil(&xLastWakeTime, LoraFrequency);
   }
 }

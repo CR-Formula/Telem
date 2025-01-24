@@ -251,10 +251,7 @@ LoRa_Status Lora_Transmit(uint8_t* data, size_t len) {
 
     uint8_t regData = 0;
 
-    if (loraMode != LORA_STANDBY) {
-        // Set to Standby Mode
-        Lora_Set_Mode(LORA_STANDBY);
-    }
+    Lora_Set_Mode(LORA_STANDBY);
 
     // Set Address Pointer to FIFO
     Lora_Write_Reg(RegFifoAddrPtr, RegFifo);
@@ -270,6 +267,8 @@ LoRa_Status Lora_Transmit(uint8_t* data, size_t len) {
     Lora_Set_Mode(LORA_TX);
 
     // Check for TX Done
+    // TODO: impelment IRQ for TX_Done signal
+    // Can use hardware pin or check register
     while(1) {
         regData = Lora_Read_Reg(RegIrqFlags);
         if (regData & RegIrqFlags_TxDone) {
