@@ -81,6 +81,13 @@ typedef enum {
     LORA_CR_4_8,
 } LoRa_CR;
 
+typedef struct {
+    uint8_t Preamble;
+    uint8_t Header;
+    uint8_t* Payload;
+    uint8_t PayloadLen;
+} LoRa_Packet;
+
 /* Function Prototypes ------------------------------------------------------*/
 
 /**
