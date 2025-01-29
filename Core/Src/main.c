@@ -145,10 +145,10 @@ void Lora_Task() {
   vTaskDelay(10);
   Set_Pin(LORA_IO_PORT, LORA_RST);
   vTaskDelay(100);
-  status = Lora_Init();
+  status = Lora_Init_Tx();
 
   if (status != LORA_OK) {
-    status = Lora_Init();
+    status = Lora_Init_Tx();
   }
 
   const TickType_t LoraFrequency = 50;

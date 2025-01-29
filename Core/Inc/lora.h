@@ -95,7 +95,7 @@ typedef struct {
  * @note default 915 MHz, 20 dBm, 500 kHz Bandwidth, 4/5 Coding Rate, 6 sf
  * @note Preamble Length is 8, CRC is enabled
  */
-LoRa_Status Lora_Init();
+LoRa_Status Lora_Init_Tx();
 
 /**
  * @brief Set the Spreading Factor for LoRa

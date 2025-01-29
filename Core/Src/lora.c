@@ -109,7 +109,7 @@ static LoRa_Status Lora_Set_Mode(LoRa_Mode mode) {
     return LORA_OK;
 }
 
-LoRa_Status Lora_Init() {
+LoRa_Status Lora_Init_Tx() {
     volatile uint8_t regData = 0;
     // Rising Edge Interrupt on PA9
     // Calls EXTI9_5_IRQHandler when PA9 gets set high
@@ -120,17 +120,23 @@ LoRa_Status Lora_Init() {
     // Enter Sleep Mode
     Lora_Set_Mode(LORA_SLEEP);
 
-    // Set Long Range Mode (LoRa)
+    // Set Long Range Mode (LoRa) and High Frequency Mode
     regData = Lora_Read_Reg(RegOpMode);
     regData |= RegOpMode_LongRangeMode;
+    regData &= ~RegOpMode_LowFrequencyModeOn;
     Lora_Write_Reg(RegOpMode, regData);
-    if (!(Lora_Read_Reg(RegOpMode) & RegOpMode_LongRangeMode)) {
+    if (!(Lora_Read_Reg(RegOpMode) & RegOpMode_LongRangeMode) ||
+        (Lora_Read_Reg(RegOpMode) & RegOpMode_LowFrequencyModeOn)) {
         return LORA_ERROR;
     }
 
     // Configure FIFO Pointers
     Lora_Write_Reg(RegFifoTxBaseAddr, RegFifo);
     Lora_Write_Reg(RegFifoRxBaseAddr, RegFifo);
+    if (Lora_Read_Reg(RegFifoTxBaseAddr) != RegFifo ||
+        Lora_Read_Reg(RegFifoRxBaseAddr) != RegFifo) {
+        return LORA_ERROR;
+    }
 
     // Set the Module to Standby Mode and wait for it to enter
     while (Lora_Set_Mode(LORA_STANDBY) != LORA_OK);
@@ -139,14 +145,16 @@ LoRa_Status Lora_Init() {
     Lora_Set_CodingRate(LORA_CR_4_5);
     Lora_Set_BW(LORA_BW_500);
 
-    // Explicit Header Mode
+    // Implicit Header Mode
     regData = Lora_Read_Reg(RegModemConfig1);
-    regData &= ~RegModemConfig1_ImplicitHeaderModeOn;
+    regData |= RegModemConfig1_ImplicitHeaderModeOn;
     Lora_Write_Reg(RegModemConfig1, regData);
 
     // Set Spreading Factor, CRC
     Lora_Set_SF(LORA_SF_7);
-    Lora_Set_CRC(true);
+    Lora_Set_CRC(false);
+
+    regData = Lora_Read_Reg(RegModemConfig2);
 
     // Disable Low data rate and set AGC On
     regData = Lora_Read_Reg(RegModemConfig3);
