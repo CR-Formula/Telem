@@ -354,4 +354,4 @@
 #define RegPaDac_PaDac_Msk                              (0x7u << RegPaDac_PaDac_Pos)
 #define RegPaDac_PaDac                                  RegPaDac_PaDac_Msk
 
-#define RegPaDac_20dBm                                  0x07
+#define RegPaDac_20dBm                                  0x87

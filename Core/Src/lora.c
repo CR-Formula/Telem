@@ -109,7 +109,7 @@ static LoRa_Status Lora_Set_Mode(LoRa_Mode mode) {
     return LORA_OK;
 }
 
-LoRa_Status Lora_Init_Tx() {
+LoRa_Status Lora_Init() {
     volatile uint8_t regData = 0;
     // Rising Edge Interrupt on PA9
     // Calls EXTI9_5_IRQHandler when PA9 gets set high
@@ -277,7 +277,7 @@ LoRa_Status Lora_Transmit(uint8_t* data, size_t len) {
     // Check for TX Done
     // TODO: impelment IRQ for TX_Done signal
     // Can use hardware pin or check register
-    while(1) {
+    while (1) {
         regData = Lora_Read_Reg(RegIrqFlags);
         if (regData & RegIrqFlags_TxDone) {
             break;
@@ -300,11 +300,9 @@ LoRa_Status Lora_Receive(uint8_t* data, uint8_t* len) {
     }
 
     // Wait for RX Done
-    while (1) {
+    regData = Lora_Read_Reg(RegIrqFlags);
+    while (regData & RegIrqFlags_RxDone) {
         regData = Lora_Read_Reg(RegIrqFlags);
-        if (regData & RegIrqFlags_RxDone) {
-            break;
-        }
     }
 
     // Read the length of the received packet

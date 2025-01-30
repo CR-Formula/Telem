@@ -137,7 +137,7 @@ void ADC_Task() {
 void Lora_Task() {
   LoRa_Status status;
 
-  uint8_t data[16] = "Hello World!";
+  uint8_t data[] = "Hello World!";
   uint8_t recvData[16];
   uint8_t recLen;
 
@@ -145,10 +145,10 @@ void Lora_Task() {
   vTaskDelay(10);
   Set_Pin(LORA_IO_PORT, LORA_RST);
   vTaskDelay(100);
-  status = Lora_Init_Tx();
+  status = Lora_Init();
 
   if (status != LORA_OK) {
-    status = Lora_Init_Tx();
+    status = Lora_Init();
   }
 
   const TickType_t LoraFrequency = 50;

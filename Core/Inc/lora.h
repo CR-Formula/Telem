@@ -81,12 +81,6 @@ typedef enum {
     LORA_CR_4_8,
 } LoRa_CR;
 
-typedef struct {
-    uint8_t Preamble;
-    uint8_t Header;
-    uint8_t* Payload;
-    uint8_t PayloadLen;
-} LoRa_Packet;
 
 /* Function Prototypes ------------------------------------------------------*/
 
@@ -95,7 +89,7 @@ typedef struct {
  * @note default 915 MHz, 20 dBm, 500 kHz Bandwidth, 4/5 Coding Rate, 6 sf
  * @note Preamble Length is 8, CRC is enabled
  */
-LoRa_Status Lora_Init_Tx();
+LoRa_Status Lora_Init();
 
 /**
  * @brief Set the Spreading Factor for LoRa
@@ -148,6 +142,7 @@ LoRa_Status Lora_Set_Preamble(uint16_t preamble);
 
 /**
  * @brief Send data buffer over LoRa Connection
+ * @note Headers and Preable are handled by the LoRa Module
  * 
  * @param data [uint8_t*] Data buffer to send
  * @param len [uint8_t] Length of data
