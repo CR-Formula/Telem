@@ -72,7 +72,7 @@
 
 /**********************  RegOpMode  ***********************/
 #define RegOpMode_Mode_Pos                              (0u)
-#define RegOpMode_Mode_Msk                              (0x3u << RegOpMode_Mode_Pos)
+#define RegOpMode_Mode_Msk                              (0x7u << RegOpMode_Mode_Pos)
 #define RegOpMode_Mode                                  RegOpMode_Mode_Msk
 #define RegOpMode_Mode_0                                (0x1u << RegOpMode_Mode_Pos)
 #define RegOpMode_Mode_1                                (0x2u << RegOpMode_Mode_Pos)

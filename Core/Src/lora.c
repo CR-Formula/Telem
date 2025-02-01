@@ -288,21 +288,24 @@ LoRa_Status Lora_Transmit(uint8_t* data, size_t len) {
 }
 
 LoRa_Status Lora_Receive(uint8_t* data, uint8_t* len) {
-    if (data == NULL || len == NULL) {
-        return LORA_ERROR;
-    }
-
-    uint8_t regData = 0;
+    volatile uint8_t regData = 0;
+    volatile uint8_t opMode = 0;
 
     // Set to RX Continuous Mode
-    if (Lora_Set_Mode(LORA_RX_CONTINUOUS) != LORA_OK) {
-        return LORA_ERROR;
-    }
+    Lora_Set_Mode(LORA_STANDBY);
+    Lora_Set_Mode(LORA_RX_CONTINUOUS);
+    opMode = Lora_Read_Reg(RegOpMode);
+    
+    // if (Lora_Set_Mode(LORA_RX_CONTINUOUS) != LORA_OK) {
+    //     return LORA_ERROR;
+    // }
 
     // Wait for RX Done
-    regData = Lora_Read_Reg(RegIrqFlags);
-    while (regData & RegIrqFlags_RxDone) {
+    while (1) {
         regData = Lora_Read_Reg(RegIrqFlags);
+        if (regData & RegIrqFlags_RxDone) {
+            break;
+        }
     }
 
     // Read the length of the received packet
@@ -312,7 +315,7 @@ LoRa_Status Lora_Receive(uint8_t* data, uint8_t* len) {
     Lora_Write_Reg(RegFifoAddrPtr, Lora_Read_Reg(RegFifoRxCurrentAddr));
 
     // Read data from FIFO
-    Lora_Read(RegFifo, data, *len);
+    Lora_Read(RegFifo, data, 13); // TODO: address the magic number
 
     // Clear RX Done flag
     Lora_Write_Reg(RegIrqFlags, RegIrqFlags_RxDone);
