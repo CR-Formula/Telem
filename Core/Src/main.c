@@ -155,8 +155,8 @@ void Lora_Task() {
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while(1) {
-    // Lora_Transmit(data, sizeof(data));
-    status = Lora_Receive(&recvData, &recLen);
+    status = Lora_Transmit(&data, sizeof(data));
+    // status = Lora_Receive(&recvData, &recLen);
     (void) status;
     vTaskDelayUntil(&xLastWakeTime, LoraFrequency);
   }

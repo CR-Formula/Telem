@@ -147,7 +147,7 @@ LoRa_Status Lora_Init() {
 
     // Implicit Header Mode
     regData = Lora_Read_Reg(RegModemConfig1);
-    regData |= RegModemConfig1_ImplicitHeaderModeOn;
+    regData &= ~RegModemConfig1_ImplicitHeaderModeOn;
     Lora_Write_Reg(RegModemConfig1, regData);
 
     // Set Spreading Factor, CRC
@@ -253,7 +253,8 @@ LoRa_Status Lora_Set_Preamble(uint16_t preamble) {
 }
 
 LoRa_Status Lora_Transmit(uint8_t* data, size_t len) {
-    if (len == 0 || len == NULL || len > LORA_MAX_PAYLOAD_LEN || data == NULL) {
+    if (len == 0 || len == NULL || 
+        len > LORA_MAX_PAYLOAD_LEN || data == NULL) {
         return LORA_ERROR;
     }
 
@@ -276,10 +277,10 @@ LoRa_Status Lora_Transmit(uint8_t* data, size_t len) {
 
     // Check for TX Done
     // TODO: impelment IRQ for TX_Done signal
-    // Can use hardware pin or check register
     while (1) {
         regData = Lora_Read_Reg(RegIrqFlags);
         if (regData & RegIrqFlags_TxDone) {
+            Lora_Write_Reg(RegIrqFlags, RegIrqFlags_TxDone); // Clear Flag
             break;
         }
     }
@@ -312,13 +313,17 @@ LoRa_Status Lora_Receive(uint8_t* data, uint8_t* len) {
     *len = Lora_Read_Reg(RegRxNbBytes);
 
     // Set FIFO address to current RX address
-    Lora_Write_Reg(RegFifoAddrPtr, Lora_Read_Reg(RegFifoRxCurrentAddr));
+    // uint8_t rxAddr = Lora_Read_Reg(RegFifoRxCurrentAddr);
+    Lora_Write_Reg(RegFifoAddrPtr, RegFifo);
 
     // Read data from FIFO
     Lora_Read(RegFifo, data, 13); // TODO: address the magic number
 
     // Clear RX Done flag
     Lora_Write_Reg(RegIrqFlags, RegIrqFlags_RxDone);
+
+    // Return to Standby Mode
+    Lora_Set_Mode(LORA_STANDBY);
 
     return LORA_OK;
 }
