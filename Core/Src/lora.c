@@ -145,7 +145,7 @@ LoRa_Status Lora_Init() {
     Lora_Set_CodingRate(LORA_CR_4_5);
     Lora_Set_BW(LORA_BW_500);
 
-    // Implicit Header Mode
+    // Explicit Header Mode
     regData = Lora_Read_Reg(RegModemConfig1);
     regData &= ~RegModemConfig1_ImplicitHeaderModeOn;
     Lora_Write_Reg(RegModemConfig1, regData);
