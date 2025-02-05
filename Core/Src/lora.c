@@ -120,17 +120,23 @@ LoRa_Status Lora_Init() {
     // Enter Sleep Mode
     Lora_Set_Mode(LORA_SLEEP);
 
-    // Set Long Range Mode (LoRa)
+    // Set Long Range Mode (LoRa) and High Frequency Mode
     regData = Lora_Read_Reg(RegOpMode);
     regData |= RegOpMode_LongRangeMode;
+    regData &= ~RegOpMode_LowFrequencyModeOn;
     Lora_Write_Reg(RegOpMode, regData);
-    if (!(Lora_Read_Reg(RegOpMode) & RegOpMode_LongRangeMode)) {
+    if (!(Lora_Read_Reg(RegOpMode) & RegOpMode_LongRangeMode) ||
+        (Lora_Read_Reg(RegOpMode) & RegOpMode_LowFrequencyModeOn)) {
         return LORA_ERROR;
     }
 
     // Configure FIFO Pointers
     Lora_Write_Reg(RegFifoTxBaseAddr, RegFifo);
     Lora_Write_Reg(RegFifoRxBaseAddr, RegFifo);
+    if (Lora_Read_Reg(RegFifoTxBaseAddr) != RegFifo ||
+        Lora_Read_Reg(RegFifoRxBaseAddr) != RegFifo) {
+        return LORA_ERROR;
+    }
 
     // Set the Module to Standby Mode and wait for it to enter
     while (Lora_Set_Mode(LORA_STANDBY) != LORA_OK);
@@ -146,7 +152,9 @@ LoRa_Status Lora_Init() {
 
     // Set Spreading Factor, CRC
     Lora_Set_SF(LORA_SF_7);
-    Lora_Set_CRC(true);
+    Lora_Set_CRC(false);
+
+    regData = Lora_Read_Reg(RegModemConfig2);
 
     // Disable Low data rate and set AGC On
     regData = Lora_Read_Reg(RegModemConfig3);
@@ -244,17 +252,15 @@ LoRa_Status Lora_Set_Preamble(uint16_t preamble) {
     return LORA_OK;
 }
 
-LoRa_Status Lora_Transmit(uint8_t* data, uint8_t len) {
-    if (len == 0 || len == NULL || len > LORA_MAX_PAYLOAD_LEN || data == NULL) {
+LoRa_Status Lora_Transmit(uint8_t* data, size_t len) {
+    if (len == 0 || len == NULL || 
+        len > LORA_MAX_PAYLOAD_LEN || data == NULL) {
         return LORA_ERROR;
     }
 
     uint8_t regData = 0;
 
-    if (loraMode != LORA_STANDBY) {
-        // Set to Standby Mode
-        Lora_Set_Mode(LORA_STANDBY);
-    }
+    Lora_Set_Mode(LORA_STANDBY);
 
     // Set Address Pointer to FIFO
     Lora_Write_Reg(RegFifoAddrPtr, RegFifo);
@@ -270,9 +276,11 @@ LoRa_Status Lora_Transmit(uint8_t* data, uint8_t len) {
     Lora_Set_Mode(LORA_TX);
 
     // Check for TX Done
-    while(1) {
+    // TODO: impelment IRQ for TX_Done signal
+    while (1) {
         regData = Lora_Read_Reg(RegIrqFlags);
         if (regData & RegIrqFlags_TxDone) {
+            Lora_Write_Reg(RegIrqFlags, RegIrqFlags_TxDone); // Clear Flag
             break;
         }
     }
@@ -281,16 +289,17 @@ LoRa_Status Lora_Transmit(uint8_t* data, uint8_t len) {
 }
 
 LoRa_Status Lora_Receive(uint8_t* data, uint8_t* len) {
-    if (data == NULL || len == NULL) {
-        return LORA_ERROR;
-    }
-
-    uint8_t regData = 0;
+    volatile uint8_t regData = 0;
+    volatile uint8_t opMode = 0;
 
     // Set to RX Continuous Mode
-    if (Lora_Set_Mode(LORA_RX_CONTINUOUS) != LORA_OK) {
-        return LORA_ERROR;
-    }
+    Lora_Set_Mode(LORA_STANDBY);
+    Lora_Set_Mode(LORA_RX_CONTINUOUS);
+    opMode = Lora_Read_Reg(RegOpMode);
+    
+    // if (Lora_Set_Mode(LORA_RX_CONTINUOUS) != LORA_OK) {
+    //     return LORA_ERROR;
+    // }
 
     // Wait for RX Done
     while (1) {
@@ -304,13 +313,17 @@ LoRa_Status Lora_Receive(uint8_t* data, uint8_t* len) {
     *len = Lora_Read_Reg(RegRxNbBytes);
 
     // Set FIFO address to current RX address
-    Lora_Write_Reg(RegFifoAddrPtr, Lora_Read_Reg(RegFifoRxCurrentAddr));
+    // uint8_t rxAddr = Lora_Read_Reg(RegFifoRxCurrentAddr);
+    Lora_Write_Reg(RegFifoAddrPtr, RegFifo);
 
     // Read data from FIFO
-    Lora_Read(RegFifo, data, *len);
+    Lora_Read(RegFifo, data, 13); // TODO: address the magic number
 
     // Clear RX Done flag
     Lora_Write_Reg(RegIrqFlags, RegIrqFlags_RxDone);
+
+    // Return to Standby Mode
+    Lora_Set_Mode(LORA_STANDBY);
 
     return LORA_OK;
 }

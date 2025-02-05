@@ -135,7 +135,11 @@ void ADC_Task() {
 }
 
 void Lora_Task() {
-  LoRa_Status status;
+  volatile LoRa_Status status;
+
+  uint8_t data[] = "Hello World!";
+  uint8_t recvData[255];
+  uint8_t recLen;
 
   Clear_Pin(LORA_IO_PORT, LORA_RST);
   vTaskDelay(10);
@@ -147,10 +151,13 @@ void Lora_Task() {
     status = Lora_Init();
   }
 
-  const TickType_t LoraFrequency = 15;
+  const TickType_t LoraFrequency = 50;
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while(1) {
+    // status = Lora_Transmit(&data, sizeof(data));
+    status = Lora_Receive(&recvData, &recLen);
+    (void) status;
     vTaskDelayUntil(&xLastWakeTime, LoraFrequency);
   }
 }

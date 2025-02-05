@@ -81,6 +81,7 @@ typedef enum {
     LORA_CR_4_8,
 } LoRa_CR;
 
+
 /* Function Prototypes ------------------------------------------------------*/
 
 /**
@@ -141,11 +142,12 @@ LoRa_Status Lora_Set_Preamble(uint16_t preamble);
 
 /**
  * @brief Send data buffer over LoRa Connection
+ * @note Headers and Preable are handled by the LoRa Module
  * 
  * @param data [uint8_t*] Data buffer to send
  * @param len [uint8_t] Length of data
  */
-LoRa_Status Lora_Transmit(uint8_t* data, uint8_t len);
+LoRa_Status Lora_Transmit(uint8_t* data, size_t len);
 
 /**
  * @brief Read data from LoRa Connection
