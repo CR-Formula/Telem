@@ -10,6 +10,7 @@
 
 /* Global Variables ---------------------------------------------------------*/
 Telemetry telemetry;
+SemaphoreHandle_t LoRa_Mutex;
 uint16_t ADC_Buffer[16];
 
 /* Function Calls -----------------------------------------------------------*/
@@ -38,7 +39,14 @@ void main() {
   Task_Status &= xTaskCreate(Collect_Stats, "Stats_Task", 512, NULL, STATS_PRIORITY, NULL);
 #endif
 
+  // Check that tasks were created successfully
   if (Task_Status != pdPASS) {
+    Error_Handler();
+  }
+
+  // Create and check LoRa Mutex Creation
+  LoRa_Mutex = xSemaphoreCreateMutex();
+  if (LoRa_Mutex == NULL) {
     Error_Handler();
   }
 
@@ -135,7 +143,7 @@ void ADC_Task() {
 }
 
 void Lora_Task() {
-  volatile LoRa_Status status;
+  LoRa_Status status;
 
   uint8_t data[] = "Hello World!";
   uint8_t recvData[255];
@@ -155,9 +163,8 @@ void Lora_Task() {
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while(1) {
-    // status = Lora_Transmit(&data, sizeof(data));
-    status = Lora_Receive(&recvData, &recLen);
-    (void) status;
+    Lora_Transmit(&data, sizeof(data));
+    // status = Lora_Receive(&recvData, &recLen);
     vTaskDelayUntil(&xLastWakeTime, LoraFrequency);
   }
 }
