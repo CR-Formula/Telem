@@ -276,7 +276,6 @@ LoRa_Status Lora_Transmit(uint8_t* data, size_t len) {
     Lora_Set_Mode(LORA_TX);
 
     // Check for TX Done
-    // TODO: impelment IRQ for TX_Done signal
     while (1) {
         regData = Lora_Read_Reg(RegIrqFlags);
         if (regData & RegIrqFlags_TxDone) {
@@ -317,7 +316,7 @@ LoRa_Status Lora_Receive(uint8_t* data, uint8_t* len) {
     Lora_Write_Reg(RegFifoAddrPtr, RegFifo);
 
     // Read data from FIFO
-    Lora_Read(RegFifo, data, 13); // TODO: address the magic number
+    Lora_Read(RegFifo, data, *len);
 
     // Clear RX Done flag
     Lora_Write_Reg(RegIrqFlags, RegIrqFlags_RxDone);
