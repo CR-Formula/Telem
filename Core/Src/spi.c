@@ -7,8 +7,8 @@
 ***********************************************/
 
 #include "spi.h"
-
-void SPI2_Init() {
+/* Function Implementation --------------------------------------------------*/
+SPI_Status SPI2_Init(uint8_t interrupt) {
   // Enable Clocks
   RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN;
   RCC->APB1ENR |= RCC_APB1ENR_SPI2EN;
@@ -33,6 +33,15 @@ void SPI2_Init() {
   SPI2->CR1 |= SPI_CR1_MSTR | (0x5 << SPI_CR1_BR_Pos);
   SPI2->CR2 &= ~SPI_CR2_FRF;
   SPI2->CR2 |= SPI_CR2_SSOE;
+
+  // Set TX and RX interrupts
+  if (interrupt) {
+    SPI2->CR2 |= SPI_CR2_RXNEIE | SPI_CR2_TXEIE;
+    NVIC_EnableIRQ(SPI2_IRQn);
+  }
+  else {
+    SPI2->CR2 &= ~SPI_CR2_RXNEIE & ~SPI_CR2_TXEIE;
+  }
 
   // Set NSS High
   GPIOB->BSRR = GPIO_BSRR_BS12;
@@ -100,3 +109,14 @@ SPI_Status SPI_Receive(SPI_TypeDef* SPI, uint8_t* buf, size_t len) {
   return SPI_OK;
 }
 
+/* ISR Definintion ----------------------------------------------------------*/
+void SPI2_IRQHandler() {
+  if (SPI2->SR & SPI_SR_RXNE) {
+    // Read Data
+    uint8_t data = SPI2->DR;
+  }
+  if (SPI2->SR & SPI_SR_TXE) {
+    // Write Data
+    SPI2->DR = 0x00;
+  }
+}
