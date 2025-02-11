@@ -60,7 +60,25 @@ extern "C" {
 #define ADC_PRIORITY                configMAX_PRIORITIES - 2
 #define LED_PRIORITY                configMAX_PRIORITIES - 5
 #define STATS_PRIORITY              configMAX_PRIORITIES - 5
+#define THERMO_PRIORITY             configMAX_PRIORITIES - 5
 
+// ADC Channel Assignments
+#define Thermocouple_1_ADC          0
+#define Thermocouple_2_ADC          1
+#define Thermocouple_3_ADC          10
+#define Thermocouple_4_ADC          11
+#define Thermocouple_5_ADC          12
+#define Thermocouple_6_ADC          13
+#define Steering_Angle_ADC          4
+#define Throttle_Position_1_ADC     5
+#define Throttle_Position_2_ADC     7
+#define Brake_Position_ADC          6
+#define Sus_Pot_1_ADC               8
+#define Sus_Pot_2_ADC               9
+#define Sus_Pot_3_ADC               14
+#define Sus_Pot_4_ADC               15
+#define NA_ADC                      2
+#define NA_ADC                      3
 
 /* Data Structures  ---------------------------------------------------------*/
 typedef struct {
@@ -71,6 +89,7 @@ typedef struct {
   uint16_t Lam;           // Lambda
   uint16_t AirT;          // Air Temp
   uint16_t CoolT;         // Coolant Temp
+  uint16_t BrakePressure; // Brake Pressure
   uint16_t Steering;      // Steering Angle 
   int32_t Speed;          // Vehicle Speed
   uint16_t OilP;          // Oil Pressure
@@ -121,6 +140,12 @@ void Lora_Task();
  * @note pulls values from DMA buffer and calculates Sensor values
  */
 void ADC_Task();
+
+/**
+ * @brief Thread for handling Thermocouple decode
+ * @note Pulls values from the ADC DMA buffer and calculates the temperature
+ */
+void Thermocouple_Task();
 
 /**
  * @brief Thread for collecting system statistics
