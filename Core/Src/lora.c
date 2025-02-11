@@ -64,8 +64,8 @@ static LoRa_Status Lora_Set_Mode(LoRa_Mode mode);
 static LoRa_Status Lora_Write_Reg(uint8_t reg, uint8_t data) {
     reg |= LORA_WRITE;
     Clear_Pin(LORA_GPIO, LORA_CS);
-    SPI_Transmit(LORA_SPI, &reg, 1);
-    SPI_Transmit(LORA_SPI, &data, 1);
+    SPI_Int_Transmit(LORA_SPI, &reg, 1);
+    SPI_Int_Transmit(LORA_SPI, &data, 1);
     Set_Pin(LORA_GPIO, LORA_CS);
     return LORA_OK;
 }
@@ -73,8 +73,8 @@ static LoRa_Status Lora_Write_Reg(uint8_t reg, uint8_t data) {
 static LoRa_Status Lora_Write(uint8_t reg, uint8_t* data, size_t len) {
     reg = reg | LORA_WRITE;
     Clear_Pin(LORA_GPIO, LORA_CS);
-    SPI_Transmit(LORA_SPI, &reg, 1);
-    SPI_Transmit(LORA_SPI, data, len);
+    SPI_Int_Transmit(LORA_SPI, &reg, 1);
+    SPI_Int_Transmit(LORA_SPI, data, len);
     Set_Pin(LORA_GPIO, LORA_CS);
     return LORA_OK;
 }
@@ -83,16 +83,16 @@ static uint8_t Lora_Read_Reg(uint8_t reg) {
     uint8_t data;
     reg &= ~LORA_WRITE;
     Clear_Pin(LORA_GPIO, LORA_CS);
-    SPI_Transmit(LORA_SPI, &reg, 1);
-    SPI_Receive(LORA_SPI, &data, 1);
+    SPI_Int_Transmit(LORA_SPI, &reg, 1);
+    SPI_Int_Receive(LORA_SPI, &data, 1);
     Set_Pin(LORA_GPIO, LORA_CS);
     return data;
 }
 
 static LoRa_Status Lora_Read(uint8_t reg, uint8_t* data, size_t len) {
     Clear_Pin(LORA_GPIO, LORA_CS);
-    SPI_Transmit(LORA_SPI, &reg, 1);
-    SPI_Receive(LORA_SPI, data, len);
+    SPI_Int_Transmit(LORA_SPI, &reg, 1);
+    SPI_Int_Receive(LORA_SPI, data, len);
     Set_Pin(LORA_GPIO, LORA_CS);
     return LORA_OK;
 }

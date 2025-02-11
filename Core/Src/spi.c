@@ -7,6 +7,14 @@
 ***********************************************/
 
 #include "spi.h"
+/* Global Variables  --------------------------------------------------------*/
+volatile uint8_t SPI_TXBuf[SPI_BUFFER_SIZE];
+volatile uint8_t SPI_RXBuf[SPI_BUFFER_SIZE];
+volatile uint8_t* SPI_TX_Pointer = &SPI_TXBuf;
+volatile uint8_t* SPI_RX_Pointer = &SPI_RXBuf;
+volatile uint8_t SPI_TX_Len = 0;
+volatile uint8_t SPI_RX_Len = 0;
+
 /* Function Implementation --------------------------------------------------*/
 SPI_Status SPI2_Init(uint8_t interrupt) {
   // Enable Clocks
@@ -34,9 +42,9 @@ SPI_Status SPI2_Init(uint8_t interrupt) {
   SPI2->CR2 &= ~SPI_CR2_FRF;
   SPI2->CR2 |= SPI_CR2_SSOE;
 
-  // Set TX and RX interrupts
+  // Set TX, RX, and Error interrupts
   if (interrupt) {
-    SPI2->CR2 |= SPI_CR2_RXNEIE | SPI_CR2_TXEIE;
+    SPI2->CR2 |= SPI_CR2_RXNEIE | SPI_CR2_TXEIE | SPI_CR2_ERRIE;
     NVIC_EnableIRQ(SPI2_IRQn);
   }
   else {
@@ -109,14 +117,56 @@ SPI_Status SPI_Receive(SPI_TypeDef* SPI, uint8_t* buf, size_t len) {
   return SPI_OK;
 }
 
+SPI_Status SPI_Int_Transmit(SPI_TypeDef* SPI, uint8_t* data, size_t len) {
+  SPI_TX_Pointer = data;
+  SPI_TX_Len = len;
+  SPI->CR2 |= SPI_CR2_TXEIE;
+  SPI->CR1 |= SPI_CR1_SPE;
+}
+
+SPI_Status SPI_Int_Receive(SPI_TypeDef* SPI, uint8_t* buf, size_t len) {
+  SPI_RX_Pointer = buf;
+  SPI_RX_Len = len;
+  SPI->CR2 |= SPI_CR2_RXNEIE;
+  SPI->CR1 |= SPI_CR1_SPE;
+}
+
 /* ISR Definintion ----------------------------------------------------------*/
 void SPI2_IRQHandler() {
+  // Receive Interrupt
   if (SPI2->SR & SPI_SR_RXNE) {
-    // Read Data
-    uint8_t data = SPI2->DR;
+    if (SPI_RX_Len > 0) {
+      *SPI_RX_Pointer = SPI2->DR;
+      SPI_RX_Pointer++;
+      SPI_RX_Len--;
+    }
+    else {
+      SPI2->CR2 &= ~SPI_CR2_RXNEIE;
+    }
   }
+  // Transmit Interrupt
   if (SPI2->SR & SPI_SR_TXE) {
-    // Write Data
-    SPI2->DR = 0x00;
+    if (SPI_TX_Len > 0) {
+      SPI2->DR = *SPI_TX_Pointer;
+      SPI_TX_Pointer++;
+      SPI_TX_Len--;
+    }
+    else {
+      SPI2->CR2 &= ~SPI_CR2_TXEIE;
+    }
+  }
+  // SPI Error Interrupt
+  switch (SPI2->SR & (SPI_SR_OVR | SPI_SR_MODF | SPI_SR_CRCERR)) {
+    case SPI_SR_OVR:
+      SPI2->SR &= ~SPI_SR_OVR;
+      break;
+    case SPI_SR_MODF:
+      SPI2->SR &= ~SPI_SR_MODF;
+      break;
+    case SPI_SR_CRCERR:
+      SPI2->SR &= ~SPI_SR_CRCERR;
+      break;
+    default:
+      break;
   }
 }

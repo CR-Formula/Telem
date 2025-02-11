@@ -11,6 +11,8 @@
 #include <stddef.h>
 
 /* Macros -------------------------------------------------------------------*/
+#define SPI_BUFFER_SIZE             64
+
 /* Structs and Enums --------------------------------------------------------*/
 typedef enum {
     SPI_ERROR,

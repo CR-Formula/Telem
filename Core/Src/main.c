@@ -24,7 +24,7 @@ void main() {
   CAN1_Init();
   CAN_Filters_Init();
   CAN_Start();
-  SPI2_Init();
+  SPI2_Init(true);
   GPIO_Init();
   DMA_ADC1_Init(&ADC_Buffer);
   USART3_Init();
