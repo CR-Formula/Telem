@@ -35,6 +35,7 @@ void main() {
   // Task_Status &= xTaskCreate(GPS_Task, "GPS_Task", 512, NULL, GPS_PRIORITY, NULL);
   Task_Status &= xTaskCreate(Lora_Task, "Lora_Task", 512, NULL, LORA_PRIORITY, NULL);
   Task_Status &= xTaskCreate(ADC_Task, "ADC_Task", 128, NULL, ADC_PRIORITY, NULL);
+  Task_Status &= xTaskCreate(Thermocouple_Task, "Thermocouple_Task", 128, NULL, THERMO_PRIORITY, NULL);
 #ifdef DEBUG
   Task_Status &= xTaskCreate(Collect_Stats, "Stats_Task", 512, NULL, STATS_PRIORITY, NULL);
 #endif
@@ -133,12 +134,22 @@ void ADC_Task() {
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while(1) {
-    telemetry.FRPot = (ADC_Buffer[0] / ADC_RESOLUTION) * SUS_POT_TRAVEL;
-    telemetry.RRPot = (ADC_Buffer[1] / ADC_RESOLUTION) * SUS_POT_TRAVEL;
-    telemetry.FRTemp = (ADC_Buffer[2] / ADC_RESOLUTION) * THERMOCOUPLE_CONVERSION;
-    telemetry.RRTemp = (ADC_Buffer[3] / ADC_RESOLUTION) * THERMOCOUPLE_CONVERSION;
-    telemetry.Steering = (ADC_Buffer[4] / ADC_RESOLUTION) * 360;
+    telemetry.FRPot = (ADC_Buffer[Sus_Pot_1_ADC] / ADC_RESOLUTION) * SUS_POT_TRAVEL;
+    telemetry.RRPot = (ADC_Buffer[Sus_Pot_2_ADC] / ADC_RESOLUTION) * SUS_POT_TRAVEL;
+    telemetry.Steering = (ADC_Buffer[Steering_Angle_ADC] / ADC_RESOLUTION) * 360;
+    telemetry.BrakePressure = (ADC_Buffer[Brake_Position_ADC] / ADC_RESOLUTION) * 100;
     vTaskDelayUntil(&xLastWakeTime, ADCFrequency); 
+  }
+}
+
+void Thermocouple_Task() {
+  const TickType_t ThermoFrequency = 1000; // 1Hz
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+
+  while(1) {
+    telemetry.FRTemp = (ADC_Buffer[Thermocouple_1_ADC] / ADC_RESOLUTION) * THERMOCOUPLE_CONVERSION;
+    telemetry.RRTemp = (ADC_Buffer[Thermocouple_2_ADC] / ADC_RESOLUTION) * THERMOCOUPLE_CONVERSION;
+    vTaskDelayUntil(&xLastWakeTime, ThermoFrequency);
   }
 }
 
