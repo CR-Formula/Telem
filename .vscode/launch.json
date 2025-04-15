@@ -23,6 +23,19 @@
             "device": "STM32F415",
             "interface": "swd",
             "svdFile": "${workspaceFolder}/STM32F405.svd",
-        }
+        },
+        {
+            "name": "J-Link Debug",
+            "cwd": "${workspaceFolder}",
+            "executable": "./build/Telem.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "jlink",
+            "device": "STM32F415RG",
+            "interface": "swd",
+            "runToEntryPoint": "main",
+            "svdFile": "${workspaceFolder}/STM32F405.svd",
+            "preLaunchCommands": ["make -j8"]
+          }
     ]
 }
