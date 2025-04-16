@@ -21,6 +21,7 @@ TARGET = Telem
 ######################################
 # debug build?
 DEBUG = 1
+STATS = 0
 # optimization
 OPT = -Og
 
@@ -163,6 +164,10 @@ ifeq ($(DEBUG), 1)
 CFLAGS += -g -gdwarf-2
 endif
 
+# Used for RTOS stat tracking
+ifeq ($(STATS), 1)
+CFLAGS += -DSTATS
+endif
 
 # Generate dependency information
 CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"

@@ -36,7 +36,7 @@ void main() {
   Task_Status &= xTaskCreate(Lora_Task, "Lora_Task", 512, NULL, LORA_PRIORITY, NULL);
   Task_Status &= xTaskCreate(ADC_Task, "ADC_Task", 128, NULL, ADC_PRIORITY, NULL);
   Task_Status &= xTaskCreate(Thermocouple_Task, "Thermocouple_Task", 128, NULL, THERMO_PRIORITY, NULL);
-#ifdef DEBUG
+#ifdef STATS
   Task_Status &= xTaskCreate(Collect_Stats, "Stats_Task", 512, NULL, STATS_PRIORITY, NULL);
 #endif
 
@@ -180,7 +180,7 @@ void Lora_Task() {
   }
 }
 
-#ifdef DEBUG
+#ifdef STATS
 void Collect_Stats() {
   const TickType_t StatsFrequency = 1000;
   TickType_t xLastWakeTime = xTaskGetTickCount();

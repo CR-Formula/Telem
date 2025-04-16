@@ -55,7 +55,8 @@
 #define configCHECK_FOR_STACK_OVERFLOW           2
 
 // FreeRTOS Stats Flags
-#ifdef DEBUG
+#ifdef STATS
+#define configRECORD_STACK_HIGH_ADDRESS          1
 #define configGENERATE_RUN_TIME_STATS            1
 #define configUSE_STATS_FORMATTING_FUNCTIONS     1
 #define configSUPPORT_DYNAMIC_ALLOCATION         1
