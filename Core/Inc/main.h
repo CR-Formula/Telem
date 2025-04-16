@@ -49,59 +49,83 @@ extern "C" {
 #include "lora.h"
 
 /* Macros  ------------------------------------------------------------------*/
-#define STATUS_LED_PIN              13
-#define GPS_ADDR                    0x42
-#define SUS_POT_TRAVEL              50
-#define THERMOCOUPLE_CONVERSION     100
+// Constant Definitions
+#define STATUS_LED_PIN              (13)
+#define GPS_ADDR                    (0x42)
+#define SUS_POT_TRAVEL              (50)
+#define THERMOCOUPLE_CONVERSION     (100)
 
-#define LORA_PRIORITY               configMAX_PRIORITIES - 1
-#define CAN_PRIORITY                configMAX_PRIORITIES - 2
-#define GPS_PRIORITY                configMAX_PRIORITIES - 2
-#define ADC_PRIORITY                configMAX_PRIORITIES - 2
-#define LED_PRIORITY                configMAX_PRIORITIES - 5
-#define STATS_PRIORITY              configMAX_PRIORITIES - 5
-#define THERMO_PRIORITY             configMAX_PRIORITIES - 5
+// Priotity Definitions
+#define LORA_PRIORITY               (configMAX_PRIORITIES - 1)
+#define CAN_PRIORITY                (configMAX_PRIORITIES - 2)
+#define GPS_PRIORITY                (configMAX_PRIORITIES - 2)
+#define ADC_PRIORITY                (configMAX_PRIORITIES - 2)
+#define LED_PRIORITY                (configMAX_PRIORITIES - 5)
+#define STATS_PRIORITY              (configMAX_PRIORITIES - 5)
+
+// LoRa Packet IDs
+#define LORA_SUSPENSION_ID          (0x01) // 50 Hz
+#define LORA_GPS_ID                 (0x02) // 25 Hz
+#define LORA_ENGINE_ID              (0x03) // 20 Hz
+#define LORA_BRAKES_ACCEL_ID        (0x04) // 10 Hz
+#define LORA_TEMPERATURE_ID         (0x05) // 1 Hz
+
+// LoRa Packet Sizes
+#define LORA_SUSPENSION_SIZE        (sizeof(telemetry.FrontPot) + sizeof(telemetry.RearPot))
+#define LORA_GPS_SIZE               (sizeof(telemetry.latGPS) + sizeof(telemetry.longGPS) + sizeof(telemetry.Speed))
+#define LORA_ENGINE_SIZE            (sizeof(telemetry.BrakePressure) + sizeof(telemetry.ThrottleADC) + sizeof(telemetry.Steering) + sizeof(telemetry.RPM) + sizeof(telemetry.ThrottlePosSensor) + sizeof(telemetry.Lambda))
+#define LORA_BRAKES_ACCEL_SIZE      (sizeof(telemetry.OilPressure) + sizeof(telemetry.FrontBrakeTemp) + sizeof(telemetry.RearBrakeTemp) + sizeof(telemetry.AccelX) + sizeof(telemetry.AccelY) + sizeof(telemetry.AccelZ))
+#define LORA_TEMPERATURE_SIZE       (sizeof(telemetry.AirTemp) + sizeof(telemetry.CoolTemp))
 
 // ADC Channel Assignments
-#define Thermocouple_1_ADC          0
-#define Thermocouple_2_ADC          1
-#define Thermocouple_3_ADC          10
-#define Thermocouple_4_ADC          11
-#define Thermocouple_5_ADC          12
-#define Thermocouple_6_ADC          13
-#define Steering_Angle_ADC          4
-#define Throttle_Position_1_ADC     5
-#define Throttle_Position_2_ADC     7
-#define Brake_Position_ADC          6
-#define Sus_Pot_1_ADC               8
-#define Sus_Pot_2_ADC               9
-#define Sus_Pot_3_ADC               14
-#define Sus_Pot_4_ADC               15
-#define NA_ADC                      2
-#define NA_ADC                      3
+#define Thermocouple_1_ADC          (0u)
+#define Thermocouple_2_ADC          (1u)
+#define Thermocouple_3_ADC          (10u)
+#define Thermocouple_4_ADC          (11u)
+#define Thermocouple_5_ADC          (12u)
+#define Thermocouple_6_ADC          (13u)
+#define Steering_Angle_ADC          (4u)
+#define Throttle_Position_1_ADC     (5u)
+#define Throttle_Position_2_ADC     (7u)
+#define Brake_Position_ADC          (6u)
+#define Sus_Pot_1_ADC               (8u)
+#define Sus_Pot_2_ADC               (9u)
+#define Sus_Pot_3_ADC               (14u)
+#define Sus_Pot_4_ADC               (15u)
+#define NA_ADC                      (2u)
+#define NA_ADC                      (3u)
 
 /* Data Structures  ---------------------------------------------------------*/
 typedef struct {
-  uint16_t RPM;           // RPM
-  uint16_t TPS;           // TPS
-  uint16_t FOT;           // Fuel Open Time
-  uint16_t IA;            // Ignition Angle
-  uint16_t Lam;           // Lambda
-  uint16_t AirT;          // Air Temp
-  uint16_t CoolT;         // Coolant Temp
-  uint16_t BrakePressure; // Brake Pressure
-  uint16_t Steering;      // Steering Angle 
-  int32_t Speed;          // Vehicle Speed
-  uint16_t OilP;          // Oil Pressure
-  uint16_t FRTemp;        // Front Right Brake Temp
-  uint16_t RRTemp;        // Rear Right Brake Temp
-  uint16_t FRPot;         // Front Right Suspension Damper
-  uint16_t RRPot;         // Rear Right Suspension Damper
-  int32_t latGPS;         // Latitude GPS
-  int32_t longGPS;        // Longitude GPS
-  uint16_t AccX;          // Accelerometer X Axis
-  uint16_t AccZ;          // Accelerometer Z Axis
-  uint16_t AccY;          // Accelerometer Y Axis
+  // 50 Hz
+  uint16_t FrontPot;                // Front Right Suspension Damper
+  uint16_t RearPot;                 // Rear Right Suspension Damper
+
+  // 25 Hz
+  int32_t latGPS;                   // Latitude GPS
+  int32_t longGPS;                  // Longitude GPS
+  int32_t Speed;                    // Vehicle GPS Speed
+
+  // 20 Hz
+  uint16_t BrakePressure;           // Brake Pressure
+  uint16_t ThrottleADC;             // Analog Throttle Position
+  uint16_t Steering;                // Steering Angle
+  uint16_t RPM;                     // Engine RPM
+  uint16_t ThrottlePosSensor;       // Throttle Position from ECU
+  uint16_t Lambda;                  // Lambda
+
+  // 10 Hz
+  uint16_t OilPressure;             // Oil Pressure
+  uint16_t FrontBrakeTemp;          // Front Right Brake Temp (F)
+  uint16_t RearBrakeTemp;           // Rear Right Brake Temp (F)
+  uint16_t AccelX;                  // Accelerometer X Axis
+  uint16_t AccelZ;                  // Accelerometer Z Axis
+  uint16_t AccelY;                  // Accelerometer Y Axis
+
+  // 1 Hz
+  uint16_t AirTemp;                 // Air Temp (F)
+  uint16_t CoolTemp;                // Coolant Temp (F)
+
 } Telemetry;
 
 /* Functions prototypes -----------------------------------------------------*/
@@ -148,8 +172,38 @@ void ADC_Task();
 void Thermocouple_Task();
 
 /**
+ * @brief Send Suspension Data over LoRa
+ * @note Packet ID 0x01 @ 50 Hz
+ */
+void LoRa_Suspension_Task();
+
+/**
+ * @brief Send GPS Data over LoRa
+ * @note Packet ID 0x02 @ 25 Hz
+ */
+void LoRa_GPS_Task();
+
+/**
+ * @brief Send Engine Data over LoRa
+ * @note Packet ID 0x03 @ 20 Hz
+ */
+void LoRa_Engine_Data_Task();
+
+/**
+ * @brief Send Brake and Acceleration Data over LoRa
+ * @note Packet ID 0x04 @ 10 Hz
+ */
+void LoRa_Brakes_Accel_Task();
+
+/**
+ * @brief Send Temperature Data over LoRa
+ * @note Packet ID 0x05 @ 1 Hz
+ */
+void LoRa_Temperature_Task();
+
+/**
  * @brief Thread for collecting system statistics
- * @note For Debug only
+ * @note Build with make STATS=1 to enable
  */
 void Collect_Stats();
 
