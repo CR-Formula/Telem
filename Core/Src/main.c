@@ -13,6 +13,9 @@ Telemetry telemetry;
 SemaphoreHandle_t LoRa_Mutex;
 uint16_t ADC_Buffer[16];
 
+// Task Handlers
+TaskHandle_t xCAN_Task;
+
 /* Function Calls -----------------------------------------------------------*/
 void main() {
   uint8_t Task_Status = 1;
@@ -32,7 +35,7 @@ void main() {
   // Create Tasks to collect Data
   Task_Status &= xTaskCreate(ADC_Task, "ADC_Task", 128, NULL, ADC_PRIORITY, NULL);
   // Task_Status &= xTaskCreate(GPS_Task, "GPS_Task", 512, NULL, GPS_PRIORITY, NULL);
-  Task_Status &= xTaskCreate(CAN_Task, "CAN_Task", 256, NULL, CAN_PRIORITY, NULL);
+  Task_Status &= xTaskCreate(CAN_Task, "CAN_Task", 256, NULL, CAN_PRIORITY, &xCAN_Task);
   Task_Status &= xTaskCreate(Status_LED, "Status_Task", 128, NULL, LED_PRIORITY, NULL);
 #ifdef STATS
   Task_Status &= xTaskCreate(Collect_Stats, "Stats_Task", 512, NULL, STATS_PRIORITY, NULL);
@@ -227,11 +230,14 @@ void LoRa_Temperature_Task() {
   }
 }
 
+
+/* Error Handlers -----------------------------------------------------------*/
 void Error_Handler() {
   Set_Pin(GPIOC, STATUS_LED_PIN);
   while(1);
 }
 
+/* Interrupt Handlers -------------------------------------------------------*/
 void EXTI9_5_IRQHandler() {
   if (EXTI->PR & (0x1 << 9)) {
     EXTI->PR |= (0x1 << 9); // Clear the status bit

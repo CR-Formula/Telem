@@ -6,7 +6,12 @@
 * @brief   Prototype Functions for CAN Driver
 ***********************************************/
 
+#include "FreeRTOS.h"
+#include "task.h"
+
 #include "stm32f415xx.h"
+
+extern TaskHandle_t xCAN_Task;
 
 typedef enum {
     CAN_RTR_Data,

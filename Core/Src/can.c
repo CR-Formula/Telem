@@ -177,4 +177,12 @@ CAN_Status CAN_Receive(CAN_TypeDef* CAN, CAN_Frame* frame) {
         return CAN_Fifo_Error;
     }
 }
-    
+
+/* Interrupt Handlers -------------------------------------------------------*/
+void CAN1_RX0_IRQHandler() {
+    BaseType_t xHPT;
+    vTaskNotifyGiveFromISR(xCAN_Task, &xHPT);
+    if (xHPT == pdTRUE) {
+        portYIELD_FROM_ISR(xHPT)
+    }
+}
