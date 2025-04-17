@@ -180,9 +180,8 @@ CAN_Status CAN_Receive(CAN_TypeDef* CAN, CAN_Frame* frame) {
 
 /* Interrupt Handlers -------------------------------------------------------*/
 void CAN1_RX0_IRQHandler() {
-    BaseType_t xHPT;
-    vTaskNotifyGiveFromISR(xCAN_Task, &xHPT);
-    if (xHPT == pdTRUE) {
-        portYIELD_FROM_ISR(xHPT)
-    }
+    // Trigger task notification to handle RX packet
+    BaseType_t xHPW;
+    vTaskNotifyGiveFromISR(xCAN_Task, &xHPW);
+    portYIELD_FROM_ISR(xHPW)
 }
