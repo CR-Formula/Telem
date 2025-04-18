@@ -92,8 +92,8 @@ extern "C" {
 #define Sus_Pot_2_ADC               (9u)
 #define Sus_Pot_3_ADC               (14u)
 #define Sus_Pot_4_ADC               (15u)
-#define NA_ADC                      (2u)
-#define NA_ADC                      (3u)
+// #define NA_ADC                      (2u)
+// #define NA_ADC                      (3u)
 
 /* Data Structures  ---------------------------------------------------------*/
 typedef struct {

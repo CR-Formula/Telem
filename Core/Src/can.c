@@ -33,7 +33,7 @@ CAN_Status CAN1_Init() {
     GPIOA->MODER |= (0x2 << GPIO_MODER_MODE11_Pos) | (0x2 << GPIO_MODER_MODE12_Pos);
     GPIOA->OTYPER &= ~GPIO_OTYPER_OT11 & ~GPIO_OTYPER_OT12;
     GPIOA->PUPDR &= ~GPIO_PUPDR_PUPD11 & ~GPIO_PUPDR_PUPD12;
-    GPIOA->PUPDR |= (0x1 << GPIO_PUPDR_PUPD11_Pos);
+    GPIOA->PUPDR |= (0x1 << GPIO_PUPDR_PUPD11_Pos) | (0x2 << GPIO_PUPDR_PUPD12_Pos);
     GPIOA->AFR[1] |= (0x9 << GPIO_AFRH_AFSEL11_Pos) | (0x9 << GPIO_AFRH_AFSEL12_Pos);
     GPIOA->OSPEEDR &= ~GPIO_OSPEEDR_OSPEED11 & ~GPIO_OSPEEDR_OSPEED12;
     GPIOA->OSPEEDR |= (0x2 << GPIO_OSPEEDR_OSPEED11_Pos) | (0x2 << GPIO_OSPEEDR_OSPEED12_Pos);
@@ -53,6 +53,10 @@ CAN_Status CAN1_Init() {
 
     // Enable RX Interrupts
     CAN1->IER |= CAN_IER_FMPIE0 | CAN_IER_FMPIE1;
+    NVIC_EnableIRQ(CAN1_RX0_IRQn); // Enable RX0 Interrupt
+    NVIC_EnableIRQ(CAN1_RX1_IRQn); // Enable RX1 Interrupt
+    NVIC_SetPriority(CAN1_RX0_IRQn, 15); // Set RX0 Interrupt Priority
+    NVIC_SetPriority(CAN1_RX1_IRQn, 15); // Set RX1 Interrupt Priority
     
     // Configure CAN1 Baud Rate
     // http://www.bittiming.can-wiki.info/
@@ -185,6 +189,7 @@ CAN_Status CAN_Receive(CAN_TypeDef* CAN, CAN_Frame* frame) {
 void CAN1_RX0_IRQHandler() {
     // Trigger task notification to handle RX packet
     BaseType_t xHPW;
+    CAN1->RF0R |= CAN_RF0R_RFOM0; // Clear Interrupt
     vTaskNotifyGiveFromISR(xCAN_Task, &xHPW);
     portYIELD_FROM_ISR(xHPW)
 }
@@ -192,6 +197,7 @@ void CAN1_RX0_IRQHandler() {
 void CAN1_RX1_IRQHandler() {
     // Trigger task notification to handle RX packet
     BaseType_t xHPW;
+    CAN1->RF1R |= CAN_RF1R_RFOM1; // Clear Interrupt
     vTaskNotifyGiveFromISR(xCAN_Task, &xHPW);
     portYIELD_FROM_ISR(xHPW)
 }

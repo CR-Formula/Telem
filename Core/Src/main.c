@@ -60,6 +60,8 @@ void main() {
     Error_Handler();
   }
 
+  NVIC_SetPriorityGrouping(0);
+
   vTaskStartScheduler(); // Start FreeRTOS Scheduler
 
   while(1);
@@ -172,7 +174,7 @@ void LoRa_Suspension_Task() {
 
   while(1) {
     if (xSemaphoreTake(LoRa_Mutex, portMAX_DELAY) == pdTRUE) {
-      Lora_Transmit(&telemetry, LORA_SUSPENSION_SIZE);
+      Lora_Transmit((uint8_t)&telemetry, LORA_SUSPENSION_SIZE);
       xSemaphoreGive(LoRa_Mutex);
     }
     vTaskDelayUntil(&xLastWakeTime, LoRaFrequency); // 50Hz rate = 20ms period
@@ -185,7 +187,7 @@ void LoRa_GPS_Task() {
 
   while(1) {
     if (xSemaphoreTake(LoRa_Mutex, portMAX_DELAY) == pdTRUE) {
-      Lora_Transmit(&telemetry.latGPS, LORA_GPS_SIZE);
+      Lora_Transmit((uint8_t)&telemetry.latGPS, LORA_GPS_SIZE);
       xSemaphoreGive(LoRa_Mutex);
     }
     vTaskDelayUntil(&xLastWakeTime, LoRaFrequency); // 25Hz rate = 40ms period
@@ -198,7 +200,7 @@ void LoRa_Engine_Data_Task() {
 
   while(1) {
     if (xSemaphoreTake(LoRa_Mutex, portMAX_DELAY) == pdTRUE) {
-      Lora_Transmit(&telemetry.BrakePressure, LORA_ENGINE_SIZE);
+      Lora_Transmit((uint8_t)&telemetry.BrakePressure, LORA_ENGINE_SIZE);
       xSemaphoreGive(LoRa_Mutex);
     }
     vTaskDelayUntil(&xLastWakeTime, LoRaFrequency); // 20Hz rate = 50ms period
@@ -211,7 +213,7 @@ void LoRa_Brakes_Accel_Task() {
 
   while(1) {
     if (xSemaphoreTake(LoRa_Mutex, portMAX_DELAY) == pdTRUE) {
-      Lora_Transmit(&telemetry.OilPressure, LORA_BRAKES_ACCEL_SIZE);
+      Lora_Transmit((uint8_t)&telemetry.OilPressure, LORA_BRAKES_ACCEL_SIZE);
       xSemaphoreGive(LoRa_Mutex);
     }
     vTaskDelayUntil(&xLastWakeTime, LoRaFrequency); // 10Hz rate = 100ms period
@@ -224,7 +226,7 @@ void LoRa_Temperature_Task() {
 
   while(1) {
     if (xSemaphoreTake(LoRa_Mutex, portMAX_DELAY) == pdTRUE) {
-      Lora_Transmit(&telemetry.AirTemp, LORA_TEMPERATURE_SIZE);
+      Lora_Transmit((uint8_t)&telemetry.AirTemp, LORA_TEMPERATURE_SIZE);
       xSemaphoreGive(LoRa_Mutex);
     }
     vTaskDelayUntil(&xLastWakeTime, LoRaFrequency); // 1Hz rate = 1000ms period

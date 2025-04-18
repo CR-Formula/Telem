@@ -23,7 +23,7 @@ TARGET = Telem
 DEBUG = 1
 STATS = 0
 # optimization
-OPT = -Og
+# OPT = -Og
 
 
 #######################################
