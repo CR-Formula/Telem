@@ -50,6 +50,9 @@ CAN_Status CAN1_Init() {
     CAN1->MCR &= ~CAN_MCR_TXFP & ~CAN_MCR_RFLM & ~CAN_MCR_TTCM 
                 & ~CAN_MCR_ABOM & ~CAN_MCR_TXFP;
     CAN1->MCR |= CAN_MCR_AWUM | CAN_MCR_NART | CAN_MCR_DBF;
+
+    // Enable RX Interrupts
+    CAN1->IER |= CAN_IER_FMPIE0 | CAN_IER_FMPIE1;
     
     // Configure CAN1 Baud Rate
     // http://www.bittiming.can-wiki.info/
@@ -180,6 +183,13 @@ CAN_Status CAN_Receive(CAN_TypeDef* CAN, CAN_Frame* frame) {
 
 /* Interrupt Handlers -------------------------------------------------------*/
 void CAN1_RX0_IRQHandler() {
+    // Trigger task notification to handle RX packet
+    BaseType_t xHPW;
+    vTaskNotifyGiveFromISR(xCAN_Task, &xHPW);
+    portYIELD_FROM_ISR(xHPW)
+}
+
+void CAN1_RX1_IRQHandler() {
     // Trigger task notification to handle RX packet
     BaseType_t xHPW;
     vTaskNotifyGiveFromISR(xCAN_Task, &xHPW);
