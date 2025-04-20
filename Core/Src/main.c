@@ -45,11 +45,11 @@ void main() {
 #endif
 
   // Create Tasks to send LoRa Packets
-  // Task_Status &= xTaskCreate(LoRa_Suspension_Task, "LoRa_Suspension_Task", 128, NULL, LORA_PRIORITY, NULL);
-  // Task_Status &= xTaskCreate(LoRa_GPS_Task, "LoRa_GPS_Task", 128, NULL, LORA_PRIORITY, NULL);
-  // Task_Status &= xTaskCreate(LoRa_Engine_Data_Task, "LoRa_Engine_Data_Task", 128, NULL, LORA_PRIORITY, NULL);
-  // Task_Status &= xTaskCreate(LoRa_Brakes_Accel_Task, "LoRa_Brakes_Accel_Task", 128, NULL, LORA_PRIORITY, NULL);
-  // Task_Status &= xTaskCreate(LoRa_Temperature_Task, "LoRa_Temperature_Task", 128, NULL, LORA_PRIORITY, NULL);
+  // Task_Status &= xTaskCreate(LoRa_Suspension_Task, "LoRa_Suspension_Task", 128, NULL, LORA_SUSPENSION_PRIORITY, NULL);
+  // Task_Status &= xTaskCreate(LoRa_GPS_Task, "LoRa_GPS_Task", 128, NULL, LORA_GPS_PRIORITY, NULL);
+  // Task_Status &= xTaskCreate(LoRa_Engine_Data_Task, "LoRa_Engine_Data_Task", 128, NULL, LORA_ENGINE_PRIORITY, NULL);
+  // Task_Status &= xTaskCreate(LoRa_Brakes_Accel_Task, "LoRa_Brakes_Accel_Task", 128, NULL, LORA_BRAKES_ACCEL_PRIORITY, NULL);
+  // Task_Status &= xTaskCreate(LoRa_Temperature_Task, "LoRa_Temperature_Task", 128, NULL, LORA_TEMPERATURE_PRIORITY, NULL);
   
   // Check that tasks were created successfully
   if (Task_Status != pdPASS) {

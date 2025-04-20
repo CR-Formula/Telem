@@ -56,12 +56,17 @@ extern "C" {
 #define THERMOCOUPLE_CONVERSION     (100)
 
 // Priotity Definitions -- Higher number = Higher Priority
-#define LORA_PRIORITY               (configMAX_PRIORITIES - 1)
-#define CAN_PRIORITY                (configMAX_PRIORITIES - 2)
-#define GPS_PRIORITY                (configMAX_PRIORITIES - 2)
-#define ADC_PRIORITY                (configMAX_PRIORITIES - 2)
-#define LED_PRIORITY                (configMAX_PRIORITIES - 5)
-#define STATS_PRIORITY              (configMAX_PRIORITIES - 5)
+#define ADC_PRIORITY                (configMAX_PRIORITIES - 1)
+#define GPS_PRIORITY                (configMAX_PRIORITIES - 3)
+#define CAN_PRIORITY                (configMAX_PRIORITIES - 5)
+#define LED_PRIORITY                (configMAX_PRIORITIES - 8)
+#define STATS_PRIORITY              (configMAX_PRIORITIES - 8)
+
+#define LORA_SUSPENSION_PRIORITY    (configMAX_PRIORITIES - 2)
+#define LORA_GPS_PRIORITY           (configMAX_PRIORITIES - 4)
+#define LORA_ENGINE_PRIORITY        (configMAX_PRIORITIES - 6)
+#define LORA_BRAKES_ACCEL_PRIORITY  (configMAX_PRIORITIES - 6)
+#define LORA_TEMPERATURE_PRIORITY   (configMAX_PRIORITIES - 7)
 
 // LoRa Packet IDs
 #define LORA_SUSPENSION_ID          (0x01) // 50 Hz
