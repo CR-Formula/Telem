@@ -10,8 +10,11 @@
 
 /* Global Variables ---------------------------------------------------------*/
 Telemetry telemetry;
-SemaphoreHandle_t LoRa_Mutex;
 uint16_t ADC_Buffer[16];
+
+SemaphoreHandle_t LoRa_Mutex;
+
+QueueHandle_t canRXQueue;
 
 // Task Handlers
 TaskHandle_t xCAN_Task;
@@ -47,7 +50,6 @@ void main() {
   // Task_Status &= xTaskCreate(LoRa_Engine_Data_Task, "LoRa_Engine_Data_Task", 128, NULL, LORA_PRIORITY, NULL);
   // Task_Status &= xTaskCreate(LoRa_Brakes_Accel_Task, "LoRa_Brakes_Accel_Task", 128, NULL, LORA_PRIORITY, NULL);
   // Task_Status &= xTaskCreate(LoRa_Temperature_Task, "LoRa_Temperature_Task", 128, NULL, LORA_PRIORITY, NULL);
-
   
   // Check that tasks were created successfully
   if (Task_Status != pdPASS) {
@@ -57,6 +59,12 @@ void main() {
   // Create and check LoRa Mutex Creation
   LoRa_Mutex = xSemaphoreCreateMutex();
   if (LoRa_Mutex == NULL) {
+    Error_Handler();
+  }
+
+  // Create and check CAN RX Queue Creation
+  canRXQueue = xQueueCreate(10, sizeof(CAN_Frame));
+  if (canRXQueue == NULL) {
     Error_Handler();
   }
 
@@ -79,37 +87,30 @@ void Status_LED() {
 }
 
 void CAN_Task() {
-  volatile CAN_Frame rFrame;
-  volatile CAN_Status Receive;
-
-  const TickType_t CANFrequency = 50; // 20Hz
-  TickType_t xLastWakeTime = xTaskGetTickCount();
+  volatile CAN_Frame rxFrame;
 
   while(1) {
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY); // Wait for notification from ISR
-    Receive = CAN_Receive(CAN1, &rFrame);
-    if (Receive == CAN_OK) {
-      switch (rFrame.id)
+    if (xQueueReceive(canRXQueue, &rxFrame, portMAX_DELAY) == pdTRUE) {
+      switch (rxFrame.id)
       {
       case 0x048:
-        telemetry.RPM = rFrame.data[0] + rFrame.data[1] << 8;
-        telemetry.ThrottlePosSensor = rFrame.data[2] + rFrame.data[3] << 8;
+        telemetry.RPM = rxFrame.data[0] + rxFrame.data[1] << 8;
+        telemetry.ThrottlePosSensor = rxFrame.data[2] + rxFrame.data[3] << 8;
         break;
       case 0x148:
-        telemetry.Lambda = rFrame.data[4] + rFrame.data[5] << 8;
+        telemetry.Lambda = rxFrame.data[4] + rxFrame.data[5] << 8;
         break;
       case 0x248:
-        telemetry.OilPressure = rFrame.data[6] + rFrame.data[7] << 8;
+        telemetry.OilPressure = rxFrame.data[6] + rxFrame.data[7] << 8;
         break;
       case 0x548:
-        telemetry.AirTemp = rFrame.data[2] + rFrame.data[3] << 8;
-        telemetry.CoolTemp = rFrame.data[4] + rFrame.data[5] << 8;
+        telemetry.AirTemp = rxFrame.data[2] + rxFrame.data[3] << 8;
+        telemetry.CoolTemp = rxFrame.data[4] + rxFrame.data[5] << 8;
         break;
       default:
         break;
       }
     }
-    vTaskDelayUntil(&xLastWakeTime, CANFrequency);
   }
 }
 

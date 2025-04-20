@@ -187,17 +187,36 @@ CAN_Status CAN_Receive(CAN_TypeDef* CAN, CAN_Frame* frame) {
 
 /* Interrupt Handlers -------------------------------------------------------*/
 void CAN1_RX0_IRQHandler() {
-    // Trigger task notification to handle RX packet
-    BaseType_t xHPW;
-    CAN1->RF0R |= CAN_RF0R_RFOM0; // Clear Interrupt
-    vTaskNotifyGiveFromISR(xCAN_Task, &xHPW);
-    portYIELD_FROM_ISR(xHPW)
+    CAN_Frame rxFrame;
+
+    rxFrame.id = (CAN1->sFIFOMailBox[0].RIR & CAN_RI0R_STID_Msk) >> CAN_RI0R_STID_Pos;
+    for (int i = 0; i < 4; i++) {
+        rxFrame.data[i] = (CAN1->sFIFOMailBox[0].RDLR >> (i * 8)) & 0xFF;
+    }
+    for (int i = 0; i < 4; i++) {
+        rxFrame.data[i + 4] = (CAN1->sFIFOMailBox[0].RDHR >> (i * 8)) & 0xFF;
+    }
+    CAN1->RF0R |= CAN_RF0R_RFOM0; // Release FIFO 0
+
+    BaseType_t xHPW = pdFALSE;
+    xQueueSendFromISR(canRXQueue, &rxFrame, &xHPW);
+    portYIELD_FROM_ISR(xHPW);
 }
 
 void CAN1_RX1_IRQHandler() {
-    // Trigger task notification to handle RX packet
+    CAN_Frame rxFrame;
+
+    rxFrame.id = (CAN1->sFIFOMailBox[1].RIR & CAN_RI1R_STID_Msk) >> CAN_RI1R_STID_Pos;
+
+    for (int i = 0; i < 4; i++) {
+        rxFrame.data[i] = (CAN1->sFIFOMailBox[1].RDLR >> (i * 8)) & 0xFF;
+    }
+    for (int i = 0; i < 4; i++) {
+        rxFrame.data[i + 4] = (CAN1->sFIFOMailBox[1].RDHR >> (i * 8)) & 0xFF;
+    }
+    CAN1->RF1R |= CAN_RF1R_RFOM1; // Release FIFO 1
+
     BaseType_t xHPW;
-    CAN1->RF1R |= CAN_RF1R_RFOM1; // Clear Interrupt
-    vTaskNotifyGiveFromISR(xCAN_Task, &xHPW);
+    xQueueSendFromISR(canRXQueue, &rxFrame, &xHPW);
     portYIELD_FROM_ISR(xHPW)
 }

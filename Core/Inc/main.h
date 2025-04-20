@@ -55,7 +55,7 @@ extern "C" {
 #define SUS_POT_TRAVEL              (50)
 #define THERMOCOUPLE_CONVERSION     (100)
 
-// Priotity Definitions
+// Priotity Definitions -- Higher number = Higher Priority
 #define LORA_PRIORITY               (configMAX_PRIORITIES - 1)
 #define CAN_PRIORITY                (configMAX_PRIORITIES - 2)
 #define GPS_PRIORITY                (configMAX_PRIORITIES - 2)
@@ -144,7 +144,7 @@ void Status_LED();
 
 /**
  * @brief Thread for handling CAN communication
- * @note TODO: Implement CAN Task
+ * @note Handles CAN RX with interrupts and FreeRTOS Queues
  */
 void CAN_Task();
 

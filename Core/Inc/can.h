@@ -8,10 +8,12 @@
 
 #include "FreeRTOS.h"
 #include "task.h"
+#include "queue.h"
 
 #include "stm32f415xx.h"
 
 extern TaskHandle_t xCAN_Task;
+extern QueueHandle_t canRXQueue;
 
 typedef enum {
     CAN_RTR_Data,
