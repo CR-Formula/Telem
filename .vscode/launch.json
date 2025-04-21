@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Cortex Debug",
+            "name": "ST-Link Debug",
             "cwd": "${workspaceFolder}",
             "preLaunchCommands": ["make -j8"],
             "executable": "./build/Telem.elf",
@@ -14,7 +14,7 @@
             "svdFile": "${workspaceFolder}/STM32F405.svd",
         },
         {
-            "name": "Cortex Attach",
+            "name": "ST-Link Attach",
             "cwd": "${workspaceFolder}",
             "executable": "./build/Telem.elf",
             "request": "attach",

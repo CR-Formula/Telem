@@ -10,8 +10,14 @@
 
 /* Global Variables ---------------------------------------------------------*/
 Telemetry telemetry;
-SemaphoreHandle_t LoRa_Mutex;
 uint16_t ADC_Buffer[16];
+
+SemaphoreHandle_t LoRa_Mutex;
+
+QueueHandle_t canRXQueue;
+
+// Task Handlers
+TaskHandle_t xCAN_Task;
 
 /* Function Calls -----------------------------------------------------------*/
 void main() {
@@ -29,17 +35,22 @@ void main() {
   DMA_ADC1_Init(&ADC_Buffer);
   USART3_Init();
 
-  // Create FreeRTOS Tasks
-  Task_Status &= xTaskCreate(Status_LED, "Status_Task", 128, NULL, LED_PRIORITY, NULL);
-  Task_Status &= xTaskCreate(CAN_Task, "CAN_Task", 256, NULL, CAN_PRIORITY, NULL);
-  // Task_Status &= xTaskCreate(GPS_Task, "GPS_Task", 512, NULL, GPS_PRIORITY, NULL);
-  Task_Status &= xTaskCreate(Lora_Task, "Lora_Task", 512, NULL, LORA_PRIORITY, NULL);
+  // Create Tasks to collect Data
   Task_Status &= xTaskCreate(ADC_Task, "ADC_Task", 128, NULL, ADC_PRIORITY, NULL);
-  Task_Status &= xTaskCreate(Thermocouple_Task, "Thermocouple_Task", 128, NULL, THERMO_PRIORITY, NULL);
-#ifdef STATS
+  // Task_Status &= xTaskCreate(GPS_Task, "GPS_Task", 512, NULL, GPS_PRIORITY, NULL);
+  Task_Status &= xTaskCreate(CAN_Task, "CAN_Task", 256, NULL, CAN_PRIORITY, &xCAN_Task);
+  Task_Status &= xTaskCreate(Status_LED, "Status_Task", 128, NULL, LED_PRIORITY, NULL);
+#ifdef STATS_Task
   Task_Status &= xTaskCreate(Collect_Stats, "Stats_Task", 512, NULL, STATS_PRIORITY, NULL);
 #endif
 
+  // Create Tasks to send LoRa Packets
+  Task_Status &= xTaskCreate(LoRa_Suspension_Task, "LoRa_Suspension_Task", 128, NULL, LORA_SUSPENSION_PRIORITY, NULL);
+  Task_Status &= xTaskCreate(LoRa_GPS_Task, "LoRa_GPS_Task", 128, NULL, LORA_GPS_PRIORITY, NULL);
+  Task_Status &= xTaskCreate(LoRa_Engine_Data_Task, "LoRa_Engine_Data_Task", 128, NULL, LORA_ENGINE_PRIORITY, NULL);
+  Task_Status &= xTaskCreate(LoRa_Brakes_Accel_Task, "LoRa_Brakes_Accel_Task", 128, NULL, LORA_BRAKES_ACCEL_PRIORITY, NULL);
+  Task_Status &= xTaskCreate(LoRa_Temperature_Task, "LoRa_Temperature_Task", 128, NULL, LORA_TEMPERATURE_PRIORITY, NULL);
+  
   // Check that tasks were created successfully
   if (Task_Status != pdPASS) {
     Error_Handler();
@@ -51,11 +62,20 @@ void main() {
     Error_Handler();
   }
 
+  // Create and check CAN RX Queue Creation
+  canRXQueue = xQueueCreate(10, sizeof(CAN_Frame));
+  if (canRXQueue == NULL) {
+    Error_Handler();
+  }
+
+  NVIC_SetPriorityGrouping(0);
+
   vTaskStartScheduler(); // Start FreeRTOS Scheduler
 
   while(1);
 }
 
+/* Telemetry Tasks ----------------------------------------------------------*/
 void Status_LED() {
   const TickType_t StatusFrequency = 1000;
   TickType_t xLastWakeTime = xTaskGetTickCount();
@@ -67,38 +87,30 @@ void Status_LED() {
 }
 
 void CAN_Task() {
-  volatile CAN_Frame rFrame;
-  volatile CAN_Status Receive;
-
-  const TickType_t CANFrequency = 50; // 20Hz
-  TickType_t xLastWakeTime = xTaskGetTickCount();
+  volatile CAN_Frame rxFrame;
 
   while(1) {
-    Receive = CAN_Receive(CAN1, &rFrame);
-    if (Receive == CAN_OK) {
-      switch (rFrame.id)
+    if (xQueueReceive(canRXQueue, &rxFrame, portMAX_DELAY) == pdTRUE) {
+      switch (rxFrame.id)
       {
       case 0x048:
-        telemetry.RPM = rFrame.data[0] + rFrame.data[1] << 8;
-        telemetry.TPS = rFrame.data[2] + rFrame.data[3] << 8;
-        telemetry.FOT = rFrame.data[4] + rFrame.data[5] << 8;
-        telemetry.IA = rFrame.data[6] + rFrame.data[7] << 8;
+        telemetry.RPM = rxFrame.data[0] + rxFrame.data[1] << 8;
+        telemetry.ThrottlePosSensor = rxFrame.data[2] + rxFrame.data[3] << 8;
         break;
       case 0x148:
-        telemetry.Lam = rFrame.data[4] + rFrame.data[5] << 8;
+        telemetry.Lambda = rxFrame.data[4] + rxFrame.data[5] << 8;
         break;
       case 0x248:
-        telemetry.OilP = rFrame.data[6] + rFrame.data[7] << 8;
+        telemetry.OilPressure = rxFrame.data[6] + rxFrame.data[7] << 8;
         break;
       case 0x548:
-        telemetry.AirT = rFrame.data[2] + rFrame.data[3] << 8;
-        telemetry.CoolT = rFrame.data[4] + rFrame.data[5] << 8;
+        telemetry.AirTemp = rxFrame.data[2] + rxFrame.data[3] << 8;
+        telemetry.CoolTemp = rxFrame.data[4] + rxFrame.data[5] << 8;
         break;
       default:
         break;
       }
     }
-    vTaskDelayUntil(&xLastWakeTime, CANFrequency);
   }
 }
 
@@ -134,53 +146,15 @@ void ADC_Task() {
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while(1) {
-    telemetry.FRPot = (ADC_Buffer[Sus_Pot_1_ADC] / ADC_RESOLUTION) * SUS_POT_TRAVEL;
-    telemetry.RRPot = (ADC_Buffer[Sus_Pot_2_ADC] / ADC_RESOLUTION) * SUS_POT_TRAVEL;
+    telemetry.FrontPot = (ADC_Buffer[Sus_Pot_1_ADC] / ADC_RESOLUTION) * SUS_POT_TRAVEL;
+    telemetry.RearPot = (ADC_Buffer[Sus_Pot_2_ADC] / ADC_RESOLUTION) * SUS_POT_TRAVEL;
     telemetry.Steering = (ADC_Buffer[Steering_Angle_ADC] / ADC_RESOLUTION) * 360;
     telemetry.BrakePressure = (ADC_Buffer[Brake_Position_ADC] / ADC_RESOLUTION) * 100;
     vTaskDelayUntil(&xLastWakeTime, ADCFrequency); 
   }
 }
 
-void Thermocouple_Task() {
-  const TickType_t ThermoFrequency = 1000; // 1Hz
-  TickType_t xLastWakeTime = xTaskGetTickCount();
-
-  while(1) {
-    telemetry.FRTemp = (ADC_Buffer[Thermocouple_1_ADC] / ADC_RESOLUTION) * THERMOCOUPLE_CONVERSION;
-    telemetry.RRTemp = (ADC_Buffer[Thermocouple_2_ADC] / ADC_RESOLUTION) * THERMOCOUPLE_CONVERSION;
-    vTaskDelayUntil(&xLastWakeTime, ThermoFrequency);
-  }
-}
-
-void Lora_Task() {
-  LoRa_Status status;
-
-  uint8_t data[] = "Hello World!";
-  uint8_t recvData[255];
-  uint8_t recLen;
-
-  Clear_Pin(LORA_IO_PORT, LORA_RST);
-  vTaskDelay(10);
-  Set_Pin(LORA_IO_PORT, LORA_RST);
-  vTaskDelay(100);
-  status = Lora_Init();
-
-  if (status != LORA_OK) {
-    status = Lora_Init();
-  }
-
-  const TickType_t LoraFrequency = 50;
-  TickType_t xLastWakeTime = xTaskGetTickCount();
-
-  while(1) {
-    Lora_Transmit(&data, sizeof(data));
-    // status = Lora_Receive(&recvData, &recLen);
-    vTaskDelayUntil(&xLastWakeTime, LoraFrequency);
-  }
-}
-
-#ifdef STATS
+#ifdef STATS_Task
 void Collect_Stats() {
   const TickType_t StatsFrequency = 1000;
   TickType_t xLastWakeTime = xTaskGetTickCount();
@@ -194,11 +168,80 @@ void Collect_Stats() {
 }
 #endif
 
+/* LoRa Transmit Tasks ------------------------------------------------------*/
+void LoRa_Suspension_Task() {
+  const TickType_t LoRaFrequency = 20; // 50Hz
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+
+  while(1) {
+    if (xSemaphoreTake(LoRa_Mutex, portMAX_DELAY) == pdTRUE) {
+      Lora_Transmit((uint8_t)&telemetry, LORA_SUSPENSION_SIZE);
+      xSemaphoreGive(LoRa_Mutex);
+    }
+    vTaskDelayUntil(&xLastWakeTime, LoRaFrequency); // 50Hz rate = 20ms period
+  }
+}
+
+void LoRa_GPS_Task() {
+  const TickType_t LoRaFrequency = 40; // 25Hz
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+
+  while(1) {
+    if (xSemaphoreTake(LoRa_Mutex, portMAX_DELAY) == pdTRUE) {
+      Lora_Transmit((uint8_t)&telemetry.latGPS, LORA_GPS_SIZE);
+      xSemaphoreGive(LoRa_Mutex);
+    }
+    vTaskDelayUntil(&xLastWakeTime, LoRaFrequency); // 25Hz rate = 40ms period
+  }
+}
+
+void LoRa_Engine_Data_Task() {
+  const TickType_t LoRaFrequency = 50; // 20Hz
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+
+  while(1) {
+    if (xSemaphoreTake(LoRa_Mutex, portMAX_DELAY) == pdTRUE) {
+      Lora_Transmit((uint8_t)&telemetry.BrakePressure, LORA_ENGINE_SIZE);
+      xSemaphoreGive(LoRa_Mutex);
+    }
+    vTaskDelayUntil(&xLastWakeTime, LoRaFrequency); // 20Hz rate = 50ms period
+  }
+}
+
+void LoRa_Brakes_Accel_Task() {
+  const TickType_t LoRaFrequency = 100; // 10Hz
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+
+  while(1) {
+    if (xSemaphoreTake(LoRa_Mutex, portMAX_DELAY) == pdTRUE) {
+      Lora_Transmit((uint8_t)&telemetry.OilPressure, LORA_BRAKES_ACCEL_SIZE);
+      xSemaphoreGive(LoRa_Mutex);
+    }
+    vTaskDelayUntil(&xLastWakeTime, LoRaFrequency); // 10Hz rate = 100ms period
+  }
+}
+
+void LoRa_Temperature_Task() {
+  const TickType_t LoRaFrequency = 1000; // 1Hz
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+
+  while(1) {
+    if (xSemaphoreTake(LoRa_Mutex, portMAX_DELAY) == pdTRUE) {
+      Lora_Transmit((uint8_t)&telemetry.AirTemp, LORA_TEMPERATURE_SIZE);
+      xSemaphoreGive(LoRa_Mutex);
+    }
+    vTaskDelayUntil(&xLastWakeTime, LoRaFrequency); // 1Hz rate = 1000ms period
+  }
+}
+
+
+/* Error Handlers -----------------------------------------------------------*/
 void Error_Handler() {
   Set_Pin(GPIOC, STATUS_LED_PIN);
   while(1);
 }
 
+/* Interrupt Handlers -------------------------------------------------------*/
 void EXTI9_5_IRQHandler() {
   if (EXTI->PR & (0x1 << 9)) {
     EXTI->PR |= (0x1 << 9); // Clear the status bit

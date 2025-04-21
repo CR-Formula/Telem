@@ -22,6 +22,7 @@ TARGET = Telem
 # debug build?
 DEBUG = 1
 STATS = 0
+STATS_Task = 0
 # optimization
 OPT = -Og
 
@@ -165,7 +166,9 @@ CFLAGS += -g -gdwarf-2
 endif
 
 # Used for RTOS stat tracking
-ifeq ($(STATS), 1)
+ifeq ($(STATS_Task), 1)
+CFLAGS += -DSTATS -DSTATS_Task
+else ifeq ($(STATS), 1)
 CFLAGS += -DSTATS
 endif
 

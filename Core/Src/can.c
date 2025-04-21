@@ -50,6 +50,13 @@ CAN_Status CAN1_Init() {
     CAN1->MCR &= ~CAN_MCR_TXFP & ~CAN_MCR_RFLM & ~CAN_MCR_TTCM 
                 & ~CAN_MCR_ABOM & ~CAN_MCR_TXFP;
     CAN1->MCR |= CAN_MCR_AWUM | CAN_MCR_NART | CAN_MCR_DBF;
+
+    // Enable RX Interrupts
+    CAN1->IER |= CAN_IER_FMPIE0 | CAN_IER_FMPIE1;
+    NVIC_EnableIRQ(CAN1_RX0_IRQn); // Enable RX0 Interrupt
+    NVIC_EnableIRQ(CAN1_RX1_IRQn); // Enable RX1 Interrupt
+    NVIC_SetPriority(CAN1_RX0_IRQn, 15); // Set RX0 Interrupt Priority
+    NVIC_SetPriority(CAN1_RX1_IRQn, 15); // Set RX1 Interrupt Priority
     
     // Configure CAN1 Baud Rate
     // http://www.bittiming.can-wiki.info/
@@ -177,4 +184,39 @@ CAN_Status CAN_Receive(CAN_TypeDef* CAN, CAN_Frame* frame) {
         return CAN_Fifo_Error;
     }
 }
-    
+
+/* Interrupt Handlers -------------------------------------------------------*/
+void CAN1_RX0_IRQHandler() {
+    CAN_Frame rxFrame;
+
+    rxFrame.id = (CAN1->sFIFOMailBox[0].RIR & CAN_RI0R_STID_Msk) >> CAN_RI0R_STID_Pos;
+    for (int i = 0; i < 4; i++) {
+        rxFrame.data[i] = (CAN1->sFIFOMailBox[0].RDLR >> (i * 8)) & 0xFF;
+    }
+    for (int i = 0; i < 4; i++) {
+        rxFrame.data[i + 4] = (CAN1->sFIFOMailBox[0].RDHR >> (i * 8)) & 0xFF;
+    }
+    CAN1->RF0R |= CAN_RF0R_RFOM0; // Release FIFO 0
+
+    BaseType_t xHPW = pdFALSE;
+    xQueueSendFromISR(canRXQueue, &rxFrame, &xHPW);
+    portYIELD_FROM_ISR(xHPW);
+}
+
+void CAN1_RX1_IRQHandler() {
+    CAN_Frame rxFrame;
+
+    rxFrame.id = (CAN1->sFIFOMailBox[1].RIR & CAN_RI1R_STID_Msk) >> CAN_RI1R_STID_Pos;
+
+    for (int i = 0; i < 4; i++) {
+        rxFrame.data[i] = (CAN1->sFIFOMailBox[1].RDLR >> (i * 8)) & 0xFF;
+    }
+    for (int i = 0; i < 4; i++) {
+        rxFrame.data[i + 4] = (CAN1->sFIFOMailBox[1].RDHR >> (i * 8)) & 0xFF;
+    }
+    CAN1->RF1R |= CAN_RF1R_RFOM1; // Release FIFO 1
+
+    BaseType_t xHPW;
+    xQueueSendFromISR(canRXQueue, &rxFrame, &xHPW);
+    portYIELD_FROM_ISR(xHPW)
+}
