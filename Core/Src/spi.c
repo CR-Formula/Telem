@@ -48,8 +48,6 @@ SPI_Status SPI_Transmit(SPI_TypeDef* SPI, uint8_t* data, size_t len) {
       // increment data pointer by 2 bytes
       data += sizeof(uint16_t);
       len--;
-      while (!(SPI->SR & SPI_SR_RXNE));
-      (void)SPI->DR;
     }
   }
   else { // 8-bit Data Frame
@@ -58,8 +56,6 @@ SPI_Status SPI_Transmit(SPI_TypeDef* SPI, uint8_t* data, size_t len) {
       SPI->DR = *data;
       data++;
       len--;
-      while (!(SPI->SR & SPI_SR_RXNE));
-      (void)SPI->DR;
     }
   }
   // Wait for last byte to be sent
