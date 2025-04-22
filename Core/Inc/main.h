@@ -75,13 +75,6 @@ extern "C" {
 #define LORA_BRAKES_ACCEL_ID        (0x04) // 10 Hz
 #define LORA_TEMPERATURE_ID         (0x05) // 1 Hz
 
-// LoRa Packet Sizes
-#define LORA_SUSPENSION_SIZE        (sizeof(telemetry.FrontPot) + sizeof(telemetry.RearPot))
-#define LORA_GPS_SIZE               (sizeof(telemetry.latGPS) + sizeof(telemetry.longGPS) + sizeof(telemetry.Speed))
-#define LORA_ENGINE_SIZE            (sizeof(telemetry.BrakePressure) + sizeof(telemetry.ThrottleADC) + sizeof(telemetry.Steering) + sizeof(telemetry.RPM) + sizeof(telemetry.ThrottlePosSensor) + sizeof(telemetry.Lambda))
-#define LORA_BRAKES_ACCEL_SIZE      (sizeof(telemetry.OilPressure) + sizeof(telemetry.FrontBrakeTemp) + sizeof(telemetry.RearBrakeTemp) + sizeof(telemetry.AccelX) + sizeof(telemetry.AccelY) + sizeof(telemetry.AccelZ))
-#define LORA_TEMPERATURE_SIZE       (sizeof(telemetry.AirTemp) + sizeof(telemetry.CoolTemp))
-
 // ADC Channel Assignments
 #define Thermocouple_1_ADC          (0u)
 #define Thermocouple_2_ADC          (1u)
@@ -101,17 +94,38 @@ extern "C" {
 // #define NA_ADC                      (3u)
 
 /* Data Structures  ---------------------------------------------------------*/
+/**
+ * @brief 50 Hz packet with ID 0x01
+ * @note  Contains Front and Rear Suspension Potentiometer values
+ */
 typedef struct {
-  // 50 Hz
+  const uint8_t PacketID;           // ID = 0x01
+
   uint16_t FrontPot;                // Front Right Suspension Damper
   uint16_t RearPot;                 // Rear Right Suspension Damper
 
-  // 25 Hz
+} LoRa_Suspension_Packet;
+
+/**
+ * @brief 25 Hz packet with ID 0x02
+ * @note  Contains GPS Latitude, Longitude, and Speed
+ */
+typedef struct {
+  const uint8_t PacketID;           // ID = 0x02
+
   int32_t latGPS;                   // Latitude GPS
   int32_t longGPS;                  // Longitude GPS
   int32_t Speed;                    // Vehicle GPS Speed
 
-  // 20 Hz
+} LoRa_GPS_Packet;
+
+/**
+ * @brief 20 Hz packet with ID 0x03
+ * @note  Contains Engine RPM, Throttle Position, Steering Angle, and Brake Pressure
+ */
+typedef struct {
+  const uint8_t PacketID;           // ID = 0x03
+
   uint16_t BrakePressure;           // Brake Pressure
   uint16_t ThrottleADC;             // Analog Throttle Position
   uint16_t Steering;                // Steering Angle
@@ -119,7 +133,15 @@ typedef struct {
   uint16_t ThrottlePosSensor;       // Throttle Position from ECU
   uint16_t Lambda;                  // Lambda
 
-  // 10 Hz
+} LoRa_Engine_Data_Packet;
+
+/**
+ * @brief 10 Hz packet with ID 0x04
+ * @note  Contains Oil Pressure, Front and Rear Brake Temp, and Accelerometer values
+ */
+typedef struct {
+  const uint8_t PacketID;           // ID = 0x04
+
   uint16_t OilPressure;             // Oil Pressure
   uint16_t FrontBrakeTemp;          // Front Right Brake Temp (F)
   uint16_t RearBrakeTemp;           // Rear Right Brake Temp (F)
@@ -127,9 +149,31 @@ typedef struct {
   uint16_t AccelZ;                  // Accelerometer Z Axis
   uint16_t AccelY;                  // Accelerometer Y Axis
 
-  // 1 Hz
+} LoRa_Brakes_Accel_Packet;
+
+/**
+ * @brief 1 Hz packet with ID 0x05
+ * @note  Contains Air and Coolant Temp
+ */
+typedef struct {
+  const uint8_t PacketID;           // ID = 0x05
+
   uint16_t AirTemp;                 // Air Temp (F)
   uint16_t CoolTemp;                // Coolant Temp (F)
+
+} LoRa_Temperature_Packet;
+
+/**
+ * @brief Telemetry Struct to hold all Telemetry Data
+ * @note  Anything not in a LoRa packet should be in this struct
+ */
+typedef struct {
+  // LoRa Packets
+  LoRa_Suspension_Packet Suspension_Packet;           // 50 Hz
+  LoRa_GPS_Packet GPS_Packet;                         // 25 Hz
+  LoRa_Engine_Data_Packet Engine_Data_Packet;         // 20 Hz
+  LoRa_Brakes_Accel_Packet Brakes_Accel_Packet;       // 10 Hz
+  LoRa_Temperature_Packet Temperature_Packet;         // 1 Hz
 
 } Telemetry;
 
