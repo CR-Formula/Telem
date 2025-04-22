@@ -9,7 +9,15 @@
 #include "main.h"
 
 /* Global Variables ---------------------------------------------------------*/
-Telemetry telemetry;
+Telemetry telemetry = 
+{
+  .Suspension_Packet.PacketID = LORA_SUSPENSION_ID,
+  .GPS_Packet.PacketID = LORA_GPS_ID,
+  .Engine_Data_Packet.PacketID = LORA_ENGINE_ID,
+  .Brakes_Accel_Packet.PacketID = LORA_BRAKES_ACCEL_ID,
+  .Temperature_Packet.PacketID = LORA_TEMPERATURE_ID,
+};
+
 uint16_t ADC_Buffer[16];
 
 SemaphoreHandle_t LoRa_Mutex;
@@ -34,6 +42,7 @@ void main() {
   GPIO_Init();
   DMA_ADC1_Init(&ADC_Buffer);
   USART3_Init();
+  Lora_Init();  
 
   // Create Tasks to collect Data
   Task_Status &= xTaskCreate(ADC_Task, "ADC_Task", 128, NULL, ADC_PRIORITY, NULL);
@@ -94,18 +103,18 @@ void CAN_Task() {
       switch (rxFrame.id)
       {
       case 0x048:
-        telemetry.RPM = rxFrame.data[0] + rxFrame.data[1] << 8;
-        telemetry.ThrottlePosSensor = rxFrame.data[2] + rxFrame.data[3] << 8;
+        telemetry.Engine_Data_Packet.RPM = rxFrame.data[0] + rxFrame.data[1] << 8;
+        telemetry.Engine_Data_Packet.ThrottlePosSensor = rxFrame.data[2] + rxFrame.data[3] << 8;
         break;
       case 0x148:
-        telemetry.Lambda = rxFrame.data[4] + rxFrame.data[5] << 8;
+        telemetry.Engine_Data_Packet.Lambda = rxFrame.data[4] + rxFrame.data[5] << 8;
         break;
       case 0x248:
-        telemetry.OilPressure = rxFrame.data[6] + rxFrame.data[7] << 8;
+        telemetry.Brakes_Accel_Packet.OilPressure = rxFrame.data[6] + rxFrame.data[7] << 8;
         break;
       case 0x548:
-        telemetry.AirTemp = rxFrame.data[2] + rxFrame.data[3] << 8;
-        telemetry.CoolTemp = rxFrame.data[4] + rxFrame.data[5] << 8;
+        telemetry.Temperature_Packet.AirTemp = rxFrame.data[2] + rxFrame.data[3] << 8;
+        telemetry.Temperature_Packet.CoolTemp = rxFrame.data[4] + rxFrame.data[5] << 8;
         break;
       default:
         break;
@@ -130,9 +139,9 @@ void GPS_Task() {
 
   while(1) {
     if (Get_Position(&data) == GPS_OK) {
-      telemetry.latGPS = data.latitude;
-      telemetry.longGPS = data.longitude;
-      telemetry.Speed = data.speed;
+      telemetry.GPS_Packet.latGPS = data.latitude;
+      telemetry.GPS_Packet.longGPS = data.longitude;
+      telemetry.GPS_Packet.Speed = data.speed;
     }
     else {
       vTaskDelay(100); // Wait for GPS to recover
@@ -146,10 +155,10 @@ void ADC_Task() {
   TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while(1) {
-    telemetry.FrontPot = (ADC_Buffer[Sus_Pot_1_ADC] / ADC_RESOLUTION) * SUS_POT_TRAVEL;
-    telemetry.RearPot = (ADC_Buffer[Sus_Pot_2_ADC] / ADC_RESOLUTION) * SUS_POT_TRAVEL;
-    telemetry.Steering = (ADC_Buffer[Steering_Angle_ADC] / ADC_RESOLUTION) * 360;
-    telemetry.BrakePressure = (ADC_Buffer[Brake_Position_ADC] / ADC_RESOLUTION) * 100;
+    telemetry.Suspension_Packet.FrontPot = (ADC_Buffer[Sus_Pot_1_ADC] / ADC_RESOLUTION) * SUS_POT_TRAVEL;
+    telemetry.Suspension_Packet.RearPot = (ADC_Buffer[Sus_Pot_2_ADC] / ADC_RESOLUTION) * SUS_POT_TRAVEL;
+    telemetry.Engine_Data_Packet.Steering = (ADC_Buffer[Steering_Angle_ADC] / ADC_RESOLUTION) * 360;
+    telemetry.Engine_Data_Packet.BrakePressure = (ADC_Buffer[Brake_Position_ADC] / ADC_RESOLUTION) * 100;
     vTaskDelayUntil(&xLastWakeTime, ADCFrequency); 
   }
 }
@@ -175,7 +184,7 @@ void LoRa_Suspension_Task() {
 
   while(1) {
     if (xSemaphoreTake(LoRa_Mutex, portMAX_DELAY) == pdTRUE) {
-      Lora_Transmit((uint8_t)&telemetry, LORA_SUSPENSION_SIZE);
+      Lora_Transmit((uint8_t)&telemetry.Suspension_Packet, sizeof(telemetry.Suspension_Packet));
       xSemaphoreGive(LoRa_Mutex);
     }
     vTaskDelayUntil(&xLastWakeTime, LoRaFrequency); // 50Hz rate = 20ms period
@@ -188,7 +197,7 @@ void LoRa_GPS_Task() {
 
   while(1) {
     if (xSemaphoreTake(LoRa_Mutex, portMAX_DELAY) == pdTRUE) {
-      Lora_Transmit((uint8_t)&telemetry.latGPS, LORA_GPS_SIZE);
+      Lora_Transmit((uint8_t)&telemetry.GPS_Packet, sizeof(telemetry.GPS_Packet));
       xSemaphoreGive(LoRa_Mutex);
     }
     vTaskDelayUntil(&xLastWakeTime, LoRaFrequency); // 25Hz rate = 40ms period
@@ -201,7 +210,7 @@ void LoRa_Engine_Data_Task() {
 
   while(1) {
     if (xSemaphoreTake(LoRa_Mutex, portMAX_DELAY) == pdTRUE) {
-      Lora_Transmit((uint8_t)&telemetry.BrakePressure, LORA_ENGINE_SIZE);
+      Lora_Transmit((uint8_t)&telemetry.Engine_Data_Packet, sizeof(telemetry.Engine_Data_Packet));
       xSemaphoreGive(LoRa_Mutex);
     }
     vTaskDelayUntil(&xLastWakeTime, LoRaFrequency); // 20Hz rate = 50ms period
@@ -214,7 +223,7 @@ void LoRa_Brakes_Accel_Task() {
 
   while(1) {
     if (xSemaphoreTake(LoRa_Mutex, portMAX_DELAY) == pdTRUE) {
-      Lora_Transmit((uint8_t)&telemetry.OilPressure, LORA_BRAKES_ACCEL_SIZE);
+      Lora_Transmit((uint8_t)&telemetry.Brakes_Accel_Packet, sizeof(telemetry.Brakes_Accel_Packet));
       xSemaphoreGive(LoRa_Mutex);
     }
     vTaskDelayUntil(&xLastWakeTime, LoRaFrequency); // 10Hz rate = 100ms period
@@ -227,7 +236,7 @@ void LoRa_Temperature_Task() {
 
   while(1) {
     if (xSemaphoreTake(LoRa_Mutex, portMAX_DELAY) == pdTRUE) {
-      Lora_Transmit((uint8_t)&telemetry.AirTemp, LORA_TEMPERATURE_SIZE);
+      Lora_Transmit((uint8_t)&telemetry.Temperature_Packet, sizeof(telemetry.Temperature_Packet));
       xSemaphoreGive(LoRa_Mutex);
     }
     vTaskDelayUntil(&xLastWakeTime, LoRaFrequency); // 1Hz rate = 1000ms period
