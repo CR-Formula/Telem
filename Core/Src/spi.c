@@ -89,7 +89,6 @@ SPI_Status SPI_Receive(SPI_TypeDef* SPI, uint8_t* buf, size_t len) {
     }
   }
   // Wait for last byte to be received
-  while(SPI->SR & SPI_SR_RXNE);
   while (SPI->SR & SPI_SR_BSY);
 
   SPI->CR1 &= ~SPI_CR1_SPE; // Disable SPI

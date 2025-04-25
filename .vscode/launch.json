@@ -37,6 +37,19 @@
             "runToEntryPoint": "main",
             "svdFile": "${workspaceFolder}/STM32F405.svd",
             "preLaunchCommands": ["make -j8"]
+          },
+          {
+            "name": "J-Link Attach",
+            "cwd": "${workspaceFolder}",
+            "executable": "./build/Telem.elf",
+            "request": "attach",
+            "type": "cortex-debug",
+            "servertype": "jlink",
+            "rtos": "FreeRTOS",
+            "device": "STM32F415RG",
+            "interface": "swd",
+            "runToEntryPoint": "main",
+            "svdFile": "${workspaceFolder}/STM32F405.svd"
           }
     ]
 }
