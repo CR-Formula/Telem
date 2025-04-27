@@ -13,20 +13,10 @@
  * 
  * @param I2C [I2C_TypeDef*] Peripheral to use
  */
-void __Start(I2C_TypeDef* I2C) {
+static void __Start(I2C_TypeDef* I2C) {
     I2C->CR1 |= I2C_CR1_START;
     while (!(I2C->SR1 & I2C_SR1_SB)); // Wait for start bit to be set
-    I2C->CR1 |= I2C_CR1_ACK; // Enable ACK
-}
-
-/**
- * @brief Generate I2C Stop Condition
- * 
- * @param I2C [I2C_TypeDef*] Peripheral to use
- */
-void __Stop(I2C_TypeDef* I2C) {
-    I2C->CR1 |= I2C_CR1_STOP;
-    while(!(I2C1->SR2 & I2C_SR2_BUSY));
+    (void) I2C->SR1; // Clear start bit by reading SR1
 }
 
 /**
@@ -60,25 +50,22 @@ I2C_Status I2C1_Init() {
 
     // Configure clock control register for 400kHz I2C speed
     // https://www.teachmemicro.com/stm32-i2c-calculator/
-    uint32_t pclk1 = 42000000; // APB1 clock frequency
-    uint32_t i2c_speed = 400000; // I2C speed
-    // uint16_t ccr_value = (pclk1 / (25 * i2c_speed)); // Fast mode, duty cycle 16/9
-    uint16_t ccr_value = 35u; // Fast mode, duty cycle 16/9
+    uint16_t ccr_value = 35; // Fast mode, duty cycle 16/9
     I2C1->CCR = I2C_CCR_FS | I2C_CCR_DUTY | ccr_value;
 
     // Configure maximum rise time
-    // uint8_t trise = ((pclk1 / 100) + 1); // Fast mode max rise time
-    uint8_t trise = 14u; // Fast mode max rise time
+    uint8_t trise = 14;
     I2C1->TRISE = trise;
 
     // Enable I2C
-    I2C1->CR1 |= I2C_CR1_PE;
+    I2C1->CR1 |= I2C_CR1_ACK | I2C_CR1_PE;
 
     return I2C_OK;
 }
 
 void I2C_Write(I2C_TypeDef* I2C, uint8_t dev, uint8_t* data, size_t len) {
     
+    while (I2C->SR2 & I2C_SR2_BUSY); // Wait for I2C to be ready
     __Start(I2C);
 
     // Send address
@@ -92,49 +79,8 @@ void I2C_Write(I2C_TypeDef* I2C, uint8_t dev, uint8_t* data, size_t len) {
         while (!(I2C->SR1 & I2C_SR1_TXE)); // Wait for data register to empty
     }
 
-    __Stop(I2C);
-}
-
-/**
- * @brief Read a byte of data over I2C
- * 
- * @param I2C [I2C_TypeDef*] Peripheral to use
- * @param dev [uint8_t] Address of device [7-bit]
- * @param reg [uint8_t] Register to read
- */
-uint8_t I2C_Read_Reg(I2C_TypeDef* I2C, uint8_t dev, uint8_t reg) {
-    uint8_t data = 0;
-
-    __Start(I2C);
-
-    // Send address
-    I2C->DR = (dev << 1) & 0xFE; // Send address with write bit
-    while (!(I2C->SR1 & I2C_SR1_ADDR)); // Wait for address to be sent
-    uint32_t tempRead = I2C->SR1;
-    tempRead = I2C->SR2; // Clear address flag by reading SR1 and SR2
-    (void) tempRead;
-
-    // Send register
-    I2C->DR = reg;
-    while (!(I2C->SR1 & I2C_SR1_TXE)); // Wait for data register to empty
-
-    __Start(I2C);
-
-    // Send address
-    I2C->DR = (dev << 1) | 0x01; // Send address with read bit
-    while (!(I2C->SR1 & I2C_SR1_ADDR)); // Wait for address to be sent
-    I2C->CR1 &= ~I2C_CR1_ACK; // Disable ACK
-    tempRead = I2C->SR1;
-    tempRead = I2C->SR2; // Clear address flag by reading SR1 and SR2
-    (void) tempRead;
-
-    __Stop(I2C);
-
-    // Read data
-    while (!(I2C->SR1 & I2C_SR1_RXNE)); // Wait for data to be received
-    data = (uint8_t)I2C->DR;
-
-    return data;
+    while (!(I2C1->SR1 & I2C_SR1_BTF)); // Wait for transfer to complete
+    I2C->CR1 |= I2C_CR1_STOP;
 }
 
 I2C_Status I2C_Read(I2C_TypeDef* I2C, uint8_t dev, uint8_t reg, uint8_t* data, size_t len) {
