@@ -29,7 +29,7 @@ I2C_Status I2C1_Init();
  * @param data [uint8_t*] Data to send [8-bit]
  * @param len [size_t] Length of data buffer
  */
-void I2C_Write(I2C_TypeDef* I2C, uint8_t addr, uint8_t* data, size_t len);
+void I2C_Write(I2C_TypeDef* I2C, uint8_t addr, uint8_t* data, const size_t len);
 
 /**
  * @brief Read data from the I2C Line
@@ -41,4 +41,4 @@ void I2C_Write(I2C_TypeDef* I2C, uint8_t addr, uint8_t* data, size_t len);
  * @param data [uint8_t*] Data buffer to read into
  * @param len [size_t] Length of message to read
  */
-I2C_Status I2C_Read(I2C_TypeDef* I2C, uint8_t dev, uint8_t reg, uint8_t* data, size_t len);
+I2C_Status I2C_Read(I2C_TypeDef* I2C, uint8_t dev, uint8_t reg, uint8_t* data, const size_t len);

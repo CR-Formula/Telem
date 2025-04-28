@@ -59,7 +59,7 @@ extern "C" {
 #define ADC_PRIORITY                (configMAX_PRIORITIES - 1)
 #define GPS_PRIORITY                (configMAX_PRIORITIES - 3)
 #define CAN_PRIORITY                (configMAX_PRIORITIES - 5)
-#define LED_PRIORITY                (configMAX_PRIORITIES - 8)
+#define LED_PRIORITY                (configMAX_PRIORITIES - 7)
 #define STATS_PRIORITY              (configMAX_PRIORITIES - 8)
 
 #define LORA_SUSPENSION_PRIORITY    (configMAX_PRIORITIES - 2)
