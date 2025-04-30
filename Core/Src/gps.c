@@ -8,7 +8,7 @@
 
 #include "gps.h"
 
-uint8_t buffer[256]; // Largest UBX Packet Size
+uint8_t buffer[512]; // Largest UBX Packet Size
 
 /* Static Functions ---------------------------------------------------------*/
 static GPS_Status checkACK(uint8_t* response, size_t msg_len, uint8_t class, uint8_t id) {
@@ -40,6 +40,10 @@ uint16_t getAvailableBytes(I2C_TypeDef* I2C, uint8_t dev) {
     // Read length of data
     I2C_Read(I2C, dev, M9N_MSB_REG, data, 2); // Read 0xFD and 0xFE registers
     len = (uint16_t)(data[0] << 8 | data[1]);
+
+    if (len > sizeof(buffer)) {
+        len = sizeof(buffer);
+    }
 
     return len;
 }
