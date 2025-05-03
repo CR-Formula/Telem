@@ -46,7 +46,7 @@ void main() {
 
   // Create Tasks to collect Data
   Task_Status &= xTaskCreate(ADC_Task, "ADC_Task", 128, NULL, ADC_PRIORITY, NULL);
-  // Task_Status &= xTaskCreate(GPS_Task, "GPS_Task", 512, NULL, GPS_PRIORITY, NULL);
+  Task_Status &= xTaskCreate(GPS_Task, "GPS_Task", 512, NULL, GPS_PRIORITY, NULL);
   Task_Status &= xTaskCreate(CAN_Task, "CAN_Task", 256, NULL, CAN_PRIORITY, &xCAN_Task);
   Task_Status &= xTaskCreate(Status_LED, "Status_Task", 128, NULL, LED_PRIORITY, NULL);
 #ifdef STATS_Task
@@ -142,9 +142,6 @@ void GPS_Task() {
       telemetry.GPS_Packet.latGPS = data.latitude;
       telemetry.GPS_Packet.longGPS = data.longitude;
       telemetry.GPS_Packet.Speed = data.speed;
-    }
-    else {
-      vTaskDelay(100); // Wait for GPS to recover
     }
     vTaskDelayUntil(&xLastWakeTime, GPSFrequency); // 25Hz rate = 40ms period
   }
