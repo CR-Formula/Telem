@@ -26,9 +26,6 @@
 #define UBX_LEN_Pos                     0x04
 #define UBX_PAYLOAD_Pos                 0x06
 
-#define UBX_ACK_CLASS                   0x06
-#define UBX_ACK_ID                      0x07
-
 #define UBX_PVT_CLASS                   0x01
 #define UBX_PVT_ID                      0x07
 #define UBX_PVT_LEN                     0x92

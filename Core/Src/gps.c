@@ -24,7 +24,8 @@ static GPS_Status calcChecksum(const uint8_t *data, size_t length, uint8_t *ckA,
     uint8_t sumA = 0;
     uint8_t sumB = 0;
 
-    for (size_t i = 2; i < length; i++) {
+    // Start at Class byte and include Class, ID, and Length bytes in length
+    for (size_t i = 2; i < (length + 6); i++) {
         sumA = sumA + data[i];
         sumB = sumB + sumA;
     }
@@ -60,7 +61,7 @@ GPS_Status GPS_Init() {
     uint8_t ubx_msg[] = {
         0xB5, 0x62,     // Sync Chars
         0x06, 0x8A,     // Class (CFG), ID (VALSET)
-        0x24, 0x00,     // Length of payload
+        0x29, 0x00,     // Length of payload
         0x00,           // Version (0x00)
         0x01,           // Layer (0x01 for RAM, or 0x04 for Flash)
         0x00, 0x00,     // Reserved for Transactions
@@ -85,12 +86,16 @@ GPS_Status GPS_Init() {
         0x06, 0x00, 0x91, 0x20,         // CFG-MSGOUT-UBX_NAV_PVT_I2C (0x20910006)
         0x01,                           // Enable PVT on I2C
 
-        0xE6, 0x95                      // CK_A, CK_B (Fletcher) 
+        // Disable NMEA messages on I2C
+        0x02, 0x00, 0x72, 0x10,         // CFG-I2COUTPROT-NMEA (0x10720002)
+        0x00,                           // Disable NMEA on I2C
+
+        0x00, 0x00                      // CK_A, CK_B (Fletcher) 
     };
 
     msg_size = sizeof(ubx_msg);
-    // calcChecksum(&ubx_msg, ubx_msg[UBX_LEN_Pos], 
-    //     &ubx_msg[msg_size - 2], &ubx_msg[msg_size - 1]);
+    calcChecksum(&ubx_msg, ubx_msg[UBX_LEN_Pos], 
+        &ubx_msg[msg_size - 2], &ubx_msg[msg_size - 1]);
 
     if (I2C_Send_UBX_CFG(I2C1, M9N_ADDR, ubx_msg, msg_size) == GPS_ERROR) {
         ret_val = GPS_ERROR;
@@ -161,8 +166,8 @@ GPS_Status I2C_Send_UBX_CFG(I2C_TypeDef* I2C, uint8_t dev, uint8_t* msg, size_t 
     I2C_Read(I2C, dev, M9N_DATA_REG, buffer, len);
 
     // Check for ACK-ACK response
-    if (buffer[UBX_ACK_CLASS] == UBX_ACK_CLASS && 
-        buffer[UBX_ACK_ID] == UBX_ACK_ID) {
+    if (buffer[UBX_CLASS_Pos] == UBX_ACK_CLASS && 
+        buffer[UBX_ID_Pos] == UBX_ACK_ID) {
         return GPS_OK;
     } else {
         return GPS_ERROR;
