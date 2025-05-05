@@ -60,6 +60,8 @@ SPI_Status SPI_Transmit(SPI_TypeDef* SPI, uint8_t* data, size_t len) {
   }
   // Wait for last byte to be sent
   while (!(SPI->SR & SPI_SR_TXE));
+  (void) SPI->DR; // Clear RXNE flag
+  (void) SPI->SR; // Clear OVR flag
   while (SPI->SR & SPI_SR_BSY);
 
   SPI->CR1 &= ~SPI_CR1_SPE; // Disable SPI
