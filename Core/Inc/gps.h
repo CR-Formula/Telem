@@ -18,13 +18,13 @@
 #define UBX_PREABLE1                    0xB5
 #define UBX_PREABLE2                    0x62
 
+#define UBX_ACK_CLASS                   0x05
+#define UBX_ACK_ID                      0x01
+
 #define UBX_CLASS_Pos                   0x02
 #define UBX_ID_Pos                      0x03
 #define UBX_LEN_Pos                     0x04
 #define UBX_PAYLOAD_Pos                 0x06
-
-#define UBX_ACK_CLASS                   0x06
-#define UBX_ACK_ID                      0x07
 
 #define UBX_PVT_CLASS                   0x01
 #define UBX_PVT_ID                      0x07
@@ -62,39 +62,6 @@ typedef struct {
     int32_t longitude;
     int32_t speed;
 } GPS_Data;
-
-/* Static Functions ---------------------------------------------------------*/
-
-/**
- * @brief Static Function to check for ACK ubx message
- * 
- * @param msg [uint8_t*] Response Message to check
- * @param msg_len [size_t] Length of Response Message
- * @param class [uint8_t] Class ID to check
- * @param id [uint8_t] ID to check
- * @return GPS_Status 
- */
-static GPS_Status checkACK(uint8_t* msg, size_t msg_len, uint8_t class, uint8_t id);
-
-/**
- * @brief Static Function to calculate UBX Checksum
- * 
- * @param msg [uint8_t*] Message to calculate checksum for
- * @param msg_len [size_t] Length of Message Payload
- * @param CK_A [uint8_t*] Pointer to CK_A
- * @param CK_B [uint8_t*] Pointer to CK_B
- * @return GPS_Status 
- */
-static GPS_Status calcChecksum(uint8_t* msg, uint8_t msg_len, uint8_t* CK_A, uint8_t* CK_B);
-
-/**
- * @brief Static Function to get available bytes on I2C line
- * 
- * @param I2C [I2C_TypeDef*] Peripheral to use
- * @param dev [uint8_t] Address of device [7-bit]
- * @param len [uint16_t*] Pointer to length of available bytes
- */
-uint16_t getAvailableBytes(I2C_TypeDef* I2C, uint8_t dev);
 
 /* Function Prototypes ------------------------------------------------------*/
 

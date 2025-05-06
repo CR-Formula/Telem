@@ -126,7 +126,7 @@ void CAN_Task() {
 void GPS_Task() {
   GPS_Status status;
   volatile GPS_Data data;
-  const TickType_t GPSFrequency = 40; // 25Hz
+  const TickType_t GPSFrequency = 40; // 25 Hz
   vTaskDelay(1000); // Delay for GPS Module to Boot
   status = GPS_Init();
 
