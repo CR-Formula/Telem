@@ -127,6 +127,9 @@ void GPS_Task() {
   GPS_Status status;
   volatile GPS_Data data;
   const TickType_t GPSFrequency = 40; // 25 Hz
+  Clear_Pin(GPIOB, GPS_RST_PIN); // Turn off GPS Power
+  vTaskDelay(100);
+  Set_Pin(GPIOB, GPS_RST_PIN); // Turn on GPS Power
   vTaskDelay(1000); // Delay for GPS Module to Boot
   status = GPS_Init();
 

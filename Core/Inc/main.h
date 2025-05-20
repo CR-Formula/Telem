@@ -52,6 +52,7 @@ extern "C" {
 // Constant Definitions
 #define STATUS_LED_PIN              (13)
 #define GPS_ADDR                    (0x42)
+#define GPS_RST_PIN                 (8)
 #define SUS_POT_TRAVEL              (50)
 #define THERMOCOUPLE_CONVERSION     (100)
 

@@ -26,6 +26,7 @@ void LED_Init() {
 void GPIO_Init() {
   // Enable GPIO A Clock
   RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
+  RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN;
 
   // Set GPIO Pins to Output mode
   // Pins reset to push pull mode
@@ -34,6 +35,8 @@ void GPIO_Init() {
   GPIOA->OSPEEDR &= ~GPIO_OSPEEDR_OSPEED8 & ~GPIO_OSPEEDR_OSPEED9;
   GPIOA->OSPEEDR |= (0x1 << GPIO_OSPEEDR_OSPEED8_Pos) | (0x1 << GPIO_OSPEEDR_OSPEED9_Pos);
   GPIOA->PUPDR &= ~GPIO_PUPDR_PUPD8 & ~GPIO_PUPDR_PUPD9;
+
+  // TODO: GPIOB Config for GPS reset pin
 }
 
 GPIO_Status GPIO_EXTI_Init(GPIO_TypeDef* GPIO, uint8_t pin) {
