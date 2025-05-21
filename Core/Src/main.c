@@ -42,7 +42,8 @@ void main() {
   GPIO_Init();
   DMA_ADC1_Init(&ADC_Buffer);
   USART3_Init();
-  Lora_Init();  
+  Lora_Init();
+  Clear_Pin(GPIOA, LORA_RST_PIN); // Turn On LoRa Module
 
   // Create Tasks to collect Data
   Task_Status &= xTaskCreate(ADC_Task, "ADC_Task", 128, NULL, ADC_PRIORITY, NULL);
@@ -127,9 +128,12 @@ void GPS_Task() {
   GPS_Status status;
   volatile GPS_Data data;
   const TickType_t GPSFrequency = 40; // 25 Hz
+
+  // Reset GPS Module
   Clear_Pin(GPIOB, GPS_RST_PIN); // Turn off GPS Power
   vTaskDelay(100);
   Set_Pin(GPIOB, GPS_RST_PIN); // Turn on GPS Power
+
   vTaskDelay(1000); // Delay for GPS Module to Boot
   status = GPS_Init();
 
