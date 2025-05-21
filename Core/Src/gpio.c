@@ -24,16 +24,24 @@ void LED_Init() {
 }
 
 void GPIO_Init() {
-  // Enable GPIO A Clock
+  // Enable GPIO Clocks
   RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
+  RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN;
 
-  // Set GPIO Pins to Output mode
-  // Pins reset to push pull mode
-  GPIOA->MODER &= ~GPIO_MODER_MODE8 & ~GPIO_MODER_MODE9; // Clear RST Pin
+  // Configure LoRa Reset and Interrupt Pins
+  GPIOA->MODER &= ~GPIO_MODER_MODE8 & ~GPIO_MODER_MODE9;
   GPIOA->MODER |= (0x1 << GPIO_MODER_MODE8_Pos) | (0x0 << GPIO_MODER_MODE9_Pos);
   GPIOA->OSPEEDR &= ~GPIO_OSPEEDR_OSPEED8 & ~GPIO_OSPEEDR_OSPEED9;
-  GPIOA->OSPEEDR |= (0x1 << GPIO_OSPEEDR_OSPEED8_Pos) | (0x1 << GPIO_OSPEEDR_OSPEED9_Pos);
+  GPIOA->OSPEEDR |= (0x1 << GPIO_OSPEEDR_OSPEED9_Pos);
   GPIOA->PUPDR &= ~GPIO_PUPDR_PUPD8 & ~GPIO_PUPDR_PUPD9;
+  GPIOA->PUPDR |= (0x2 << GPIO_PUPDR_PUPD8_Pos);
+
+  // GPS Reset Pin
+  GPIOB->MODER &= ~GPIO_MODER_MODE8;
+  GPIOB->MODER |= (0x1 << GPIO_MODER_MODE8_Pos);
+  GPIOB->OTYPER &= ~GPIO_OTYPER_OT8; // Push Pull
+  GPIOB->OSPEEDR &= ~GPIO_OSPEEDR_OSPEED8;
+  GPIOB->PUPDR &= ~GPIO_PUPDR_PUPD8; // No Pull up/down
 }
 
 GPIO_Status GPIO_EXTI_Init(GPIO_TypeDef* GPIO, uint8_t pin) {
