@@ -148,7 +148,7 @@ GPS_Status Get_Position(GPS_Data* data) {
         ret_val = GPS_OK;
     }
     else {
-        ret_val = GPS_ERROR;
+        ret_val = GPS_NO_FIX;
     }
 
     
