@@ -10,30 +10,31 @@
 #include "i2c.h"
 
 /* Macros -------------------------------------------------------------------*/
-#define M9N_ADDR                        0x42
-#define M9N_MSB_REG                     0xFD
-#define M9N_LSB_REG                     0xFE
-#define M9N_DATA_REG                    0xFF
+#define M9N_ADDR                        (0x42)
+#define M9N_MSB_REG                     (0xFD)
+#define M9N_LSB_REG                     (0xFE)
+#define M9N_DATA_REG                    (0xFF)
 
-#define UBX_PREABLE1                    0xB5
-#define UBX_PREABLE2                    0x62
+#define UBX_PREABLE1                    (0xB5)
+#define UBX_PREABLE2                    (0x62)
 
-#define UBX_ACK_CLASS                   0x05
-#define UBX_ACK_ID                      0x01
+#define UBX_ACK_CLASS                   (0x05)
+#define UBX_ACK_ID                      (0x01)
 
-#define UBX_CLASS_Pos                   0x02
-#define UBX_ID_Pos                      0x03
-#define UBX_LEN_Pos                     0x04
-#define UBX_PAYLOAD_Pos                 0x06
+#define UBX_CLASS_Pos                   (0x02)
+#define UBX_ID_Pos                      (0x03)
+#define UBX_LEN_Pos                     (0x04)
+#define UBX_PAYLOAD_Pos                 (0x06)
 
-#define UBX_PVT_CLASS                   0x01
-#define UBX_PVT_ID                      0x07
-#define UBX_PVT_LEN                     0x92
+#define UBX_PVT_CLASS                   (0x01)
+#define UBX_PVT_ID                      (0x07)
+#define UBX_PVT_LEN                     (0x92)
+#define UBX_PVT_FIX_Pos                 (0x14 + UBX_PAYLOAD_Pos)
 #define UBX_PVT_LON_Pos                 (0x18 + UBX_PAYLOAD_Pos)
 #define UBX_PVT_LAT_Pos                 (0x1C + UBX_PAYLOAD_Pos)
 #define UBX_PVT_SPD_Pos                 (0x3C + UBX_PAYLOAD_Pos)
 
-#define RETRY_COUNT                     25
+#define RETRY_COUNT                     (25)
 
 /* Structs and Enums --------------------------------------------------------*/
 typedef struct {
@@ -53,8 +54,9 @@ typedef struct {
 } UBX_Parser;
 
 typedef enum {
-    GPS_OK = 0,
-    GPS_ERROR = 1
+    GPS_OK,
+    GPS_ERROR,
+    GPS_NO_FIX,
 } GPS_Status;
 
 typedef struct {
@@ -74,7 +76,7 @@ typedef struct {
 GPS_Status GPS_Init();
 
 /**
- * @brief Get GPS Position Data
+ * @brief Checks for GPS lock and gets the current position and speed
  * 
  * @param data [GPS_Data*] Pointer to GPS Data Struct
  * @return GPS_Status

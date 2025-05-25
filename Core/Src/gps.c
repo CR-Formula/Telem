@@ -110,6 +110,7 @@ GPS_Status GPS_Init() {
 GPS_Status Get_Position(GPS_Data* data) {
     volatile uint16_t len = 0;
     uint8_t count = 0;
+    GPS_Status ret_val = GPS_ERROR;
     uint8_t poll_nav_pvt[] = {
         UBX_PREABLE1, UBX_PREABLE2, // Sync Chars
         0x01, 0x07, // Class (NAV), ID (PVT)
@@ -130,21 +131,28 @@ GPS_Status Get_Position(GPS_Data* data) {
 
     I2C_Read(I2C1, M9N_ADDR, M9N_DATA_REG, buffer, len);
 
-    // Data is sent in signed little-endian 32-bit integer, two's complement
-    data->latitude = buffer[UBX_PVT_LAT_Pos + 3] << 24 |
-                     buffer[UBX_PVT_LAT_Pos + 2] << 16 |
-                     buffer[UBX_PVT_LAT_Pos + 1] << 8 |
-                     buffer[UBX_PVT_LAT_Pos];
-    data->longitude = buffer[UBX_PVT_LON_Pos + 3] << 24 |
-                      buffer[UBX_PVT_LON_Pos + 2] << 16 |
-                      buffer[UBX_PVT_LON_Pos + 1] << 8 |
-                      buffer[UBX_PVT_LON_Pos];
-    data->speed = buffer[UBX_PVT_SPD_Pos + 3] << 24 |
-                  buffer[UBX_PVT_SPD_Pos + 2] << 16 |
-                  buffer[UBX_PVT_SPD_Pos + 1] << 8 |
-                  buffer[UBX_PVT_SPD_Pos];
+    if (buffer[UBX_PVT_FIX_Pos] != 0x00) {
+        // Data is sent in signed little-endian 32-bit integer, two's complement
+        data->latitude = buffer[UBX_PVT_LAT_Pos + 3] << 24 |
+                         buffer[UBX_PVT_LAT_Pos + 2] << 16 |
+                         buffer[UBX_PVT_LAT_Pos + 1] << 8 |
+                         buffer[UBX_PVT_LAT_Pos];
+        data->longitude = buffer[UBX_PVT_LON_Pos + 3] << 24 |
+                          buffer[UBX_PVT_LON_Pos + 2] << 16 |
+                          buffer[UBX_PVT_LON_Pos + 1] << 8 |
+                          buffer[UBX_PVT_LON_Pos];
+        data->speed = buffer[UBX_PVT_SPD_Pos + 3] << 24 |
+                      buffer[UBX_PVT_SPD_Pos + 2] << 16 |
+                      buffer[UBX_PVT_SPD_Pos + 1] << 8 |
+                      buffer[UBX_PVT_SPD_Pos];
+        ret_val = GPS_OK;
+    }
+    else {
+        ret_val = GPS_NO_FIX;
+    }
+
     
-    return GPS_OK;
+    return ret_val;
 }
 
 GPS_Status I2C_Send_UBX_CFG(I2C_TypeDef* I2C, uint8_t dev, uint8_t* msg, size_t msg_len) {
