@@ -104,18 +104,18 @@ void CAN_Task() {
       switch (rxFrame.id)
       {
       case 0x048:
-        telemetry.Engine_Data_Packet.RPM = rxFrame.data[0] + rxFrame.data[1] << 8;
-        telemetry.Engine_Data_Packet.ThrottlePosSensor = rxFrame.data[2] + rxFrame.data[3] << 8;
+        telemetry.Engine_Data_Packet.RPM = rxFrame.data[0] + (rxFrame.data[1] << 8);
+        telemetry.Engine_Data_Packet.ThrottlePosSensor = rxFrame.data[2] + (rxFrame.data[3] << 8);
         break;
       case 0x148:
-        telemetry.Engine_Data_Packet.Lambda = rxFrame.data[4] + rxFrame.data[5] << 8;
+        telemetry.Engine_Data_Packet.Lambda = rxFrame.data[4] + (rxFrame.data[5] << 8);
         break;
       case 0x248:
-        telemetry.Brakes_Accel_Packet.OilPressure = rxFrame.data[6] + rxFrame.data[7] << 8;
+        telemetry.Brakes_Accel_Packet.OilPressure = rxFrame.data[6] + (rxFrame.data[7] << 8);
         break;
       case 0x548:
-        telemetry.Temperature_Packet.AirTemp = rxFrame.data[2] + rxFrame.data[3] << 8;
-        telemetry.Temperature_Packet.CoolTemp = rxFrame.data[4] + rxFrame.data[5] << 8;
+        telemetry.Temperature_Packet.AirTemp = rxFrame.data[2] + (rxFrame.data[3] << 8);
+        telemetry.Temperature_Packet.CoolTemp = rxFrame.data[4] + (rxFrame.data[5] << 8);
         break;
       default:
         break;
@@ -148,7 +148,8 @@ void GPS_Task() {
     if (Get_Position(&data) == GPS_OK) {
       telemetry.GPS_Packet.latGPS = data.latitude;
       telemetry.GPS_Packet.longGPS = data.longitude;
-      telemetry.GPS_Packet.Speed = data.speed;
+      telemetry.GPS_Packet.Speed = 
+        (int8_t)(data.speed / 447.04); // Convert speed from mm/s to mph
     }
     vTaskDelayUntil(&xLastWakeTime, GPSFrequency); // 25Hz rate = 40ms period
   }

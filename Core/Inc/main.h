@@ -117,7 +117,7 @@ typedef struct {
 
   int32_t latGPS;                   // Latitude GPS
   int32_t longGPS;                  // Longitude GPS
-  int32_t Speed;                    // Vehicle GPS Speed
+  int8_t Speed;                    // Vehicle GPS Speed
 
 } LoRa_GPS_Packet;
 
