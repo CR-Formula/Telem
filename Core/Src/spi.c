@@ -40,10 +40,32 @@ void SPI2_Init() {
 }
 
 SPI_Status SPI_Transmit(SPI_TypeDef* SPI, uint8_t* data, size_t len) {
+  // Check for and clear any error flags before starting
+  volatile uint32_t sr = SPI->SR;
+  if (sr & SPI_SR_OVR) {
+    // Clear overrun flag by reading DR then SR
+    volatile uint16_t dummy = SPI->DR;
+    (void)dummy;
+    dummy = SPI->SR;
+    (void)dummy;
+  }
+  if (sr & SPI_SR_MODF) {
+    // Clear mode fault by reading SR then writing CR1
+    SPI->CR1 |= SPI_CR1_SPE;
+  }
+
   SPI->CR1 |= SPI_CR1_SPE; // Enable SPI
   if (SPI->CR1 & SPI_CR1_DFF) { // 16-bit Data Frame
     while (len > 0) {
-      while (!(SPI->SR & SPI_SR_TXE)); 
+      // Wait for TX buffer empty, checking for errors
+      while (1) {
+        sr = SPI->SR;
+        if (sr & SPI_SR_TXE) break;
+        if (sr & (SPI_SR_OVR | SPI_SR_MODF | SPI_SR_UDR)) {
+          SPI->CR1 &= ~SPI_CR1_SPE; // Disable SPI
+          return SPI_ERROR;
+        }
+      }
       SPI->DR = *((uint16_t*)data);
       // increment data pointer by 2 bytes
       data += sizeof(uint16_t);
@@ -52,14 +74,29 @@ SPI_Status SPI_Transmit(SPI_TypeDef* SPI, uint8_t* data, size_t len) {
   }
   else { // 8-bit Data Frame
     while (len > 0) {
-      while (!(SPI->SR & SPI_SR_TXE));
+      // Wait for TX buffer empty, checking for errors
+      while (1) {
+        sr = SPI->SR;
+        if (sr & SPI_SR_TXE) break;
+        if (sr & (SPI_SR_OVR | SPI_SR_MODF | SPI_SR_UDR)) {
+          SPI->CR1 &= ~SPI_CR1_SPE; // Disable SPI
+          return SPI_ERROR;
+        }
+      }
       SPI->DR = *data;
       data++;
       len--;
     }
   }
   // Wait for last byte to be sent
-  while (SPI->SR & SPI_SR_BSY);
+  while (1) {
+    sr = SPI->SR;
+    if (!(sr & SPI_SR_BSY)) break;
+    if (sr & (SPI_SR_OVR | SPI_SR_MODF | SPI_SR_UDR)) {
+      SPI->CR1 &= ~SPI_CR1_SPE; // Disable SPI
+      return SPI_ERROR;
+    }
+  }
 
   SPI->CR1 &= ~SPI_CR1_SPE; // Disable SPI
 
@@ -67,12 +104,49 @@ SPI_Status SPI_Transmit(SPI_TypeDef* SPI, uint8_t* data, size_t len) {
 }
 
 SPI_Status SPI_Receive(SPI_TypeDef* SPI, uint8_t* buf, size_t len) {
+  // Check for and clear any error flags before starting
+  volatile uint32_t sr = SPI->SR;
+  if (sr & SPI_SR_OVR) {
+    // Clear overrun flag by reading DR then SR
+    volatile uint16_t dummy = SPI->DR;
+    (void)dummy;
+    dummy = SPI->SR;
+    (void)dummy;
+  }
+  if (sr & SPI_SR_MODF) {
+    // Clear mode fault by reading SR then writing CR1
+    SPI->CR1 |= SPI_CR1_SPE;
+  }
+
   SPI->CR1 |= SPI_CR1_SPE; // Enable SPI
   if (SPI->CR1 & SPI_CR1_DFF) { // 16-bit Data Frame
     while (len > 0) {
-      while(!(SPI->SR & SPI_SR_TXE));
+      // Wait for TX buffer empty, checking for errors
+      while (1) {
+        sr = SPI->SR;
+        if (sr & SPI_SR_TXE) break;
+        if (sr & (SPI_SR_OVR | SPI_SR_MODF | SPI_SR_UDR)) {
+          SPI->CR1 &= ~SPI_CR1_SPE; // Disable SPI
+          return SPI_ERROR;
+        }
+      }
       SPI->DR = 0x0000; // Dummy Data
-      while (!(SPI->SR & SPI_SR_RXNE));
+      // Wait for RX buffer not empty, checking for errors
+      while (1) {
+        sr = SPI->SR;
+        if (sr & SPI_SR_RXNE) break;
+        if (sr & (SPI_SR_OVR | SPI_SR_MODF | SPI_SR_UDR)) {
+          // Clear overrun if present
+          if (sr & SPI_SR_OVR) {
+            volatile uint16_t dummy = SPI->DR;
+            (void)dummy;
+            dummy = SPI->SR;
+            (void)dummy;
+          }
+          SPI->CR1 &= ~SPI_CR1_SPE; // Disable SPI
+          return SPI_ERROR;
+        }
+      }
       *((uint16_t*)buf) = SPI->DR; // Cast to 16-bit
       // increment data pointer by 2 bytes and len by 2
       buf += sizeof(uint16_t);
@@ -81,14 +155,44 @@ SPI_Status SPI_Receive(SPI_TypeDef* SPI, uint8_t* buf, size_t len) {
   }
   else { // 8-bit Data Frame
     for (size_t i = 0; i < len; i++) {
-      while(!(SPI->SR & SPI_SR_TXE));
+      // Wait for TX buffer empty, checking for errors
+      while (1) {
+        sr = SPI->SR;
+        if (sr & SPI_SR_TXE) break;
+        if (sr & (SPI_SR_OVR | SPI_SR_MODF | SPI_SR_UDR)) {
+          SPI->CR1 &= ~SPI_CR1_SPE; // Disable SPI
+          return SPI_ERROR;
+        }
+      }
       SPI->DR = 0x00; // Dummy Data to generate clk
-      while (!(SPI->SR & SPI_SR_RXNE));
+      // Wait for RX buffer not empty, checking for errors
+      while (1) {
+        sr = SPI->SR;
+        if (sr & SPI_SR_RXNE) break;
+        if (sr & (SPI_SR_OVR | SPI_SR_MODF | SPI_SR_UDR)) {
+          // Clear overrun if present
+          if (sr & SPI_SR_OVR) {
+            volatile uint16_t dummy = SPI->DR;
+            (void)dummy;
+            dummy = SPI->SR;
+            (void)dummy;
+          }
+          SPI->CR1 &= ~SPI_CR1_SPE; // Disable SPI
+          return SPI_ERROR;
+        }
+      }
       buf[i] = SPI->DR;
     }
   }
   // Wait for last byte to be received
-  while (SPI->SR & SPI_SR_BSY);
+  while (1) {
+    sr = SPI->SR;
+    if (!(sr & SPI_SR_BSY)) break;
+    if (sr & (SPI_SR_OVR | SPI_SR_MODF | SPI_SR_UDR)) {
+      SPI->CR1 &= ~SPI_CR1_SPE; // Disable SPI
+      return SPI_ERROR;
+    }
+  }
 
   SPI->CR1 &= ~SPI_CR1_SPE; // Disable SPI
 
